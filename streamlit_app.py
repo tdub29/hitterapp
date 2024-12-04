@@ -285,10 +285,14 @@ def create_spray_chart(data, ax):
     data['X'] = data['Distance'] * np.cos(data['Direction_rad'])
     data['Y'] = data['Distance'] * np.sin(data['Direction_rad'])
     
+    # Rotate coordinates counterclockwise by 90 degrees
+    data['Rotated_X'] = -data['Y']
+    data['Rotated_Y'] = data['X']
+    
     # Scatter plot with ExitSpeed as the color
     scatter = ax.scatter(
-        data['X'], 
-        data['Y'], 
+        data['Rotated_X'], 
+        data['Rotated_Y'], 
         c=data['Exitspeed'], 
         cmap='coolwarm', 
         s=50, 
@@ -300,10 +304,11 @@ def create_spray_chart(data, ax):
     cbar.set_label('Exit Speed')
     
     # Set plot aesthetics
-    ax.set_title("Spray Chart")
-    ax.set_xlabel("X (Adjusted by Direction)")
-    ax.set_ylabel("Y (Adjusted by Direction)")
+    ax.set_title("Spray Chart (Rotated Counterclockwise)")
+    ax.set_xlabel("X")
+    ax.set_ylabel("Distance")
     ax.set_aspect('equal')
+
 
 # Streamlit Page Navigation
 st.sidebar.title("Navigation")
