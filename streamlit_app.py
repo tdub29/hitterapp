@@ -274,9 +274,9 @@ def create_heatmap(data, metric, ax):
     ax.set_ylabel('PlateLocHeight')
 
 # Spray Chart Function
-def create_spray_chart(ax):
-    # Define points in polar coordinates (angle in degrees, distance in feet)
-    points = [
+def create_spray_chart(data, ax):
+    # Define outline points in polar coordinates (angle in degrees, distance in feet)
+    outline_points = [
         (-45, 90),  # Bottom left
         (-45, 315),  # Top left
         (-15, 375),  # Top center left
@@ -288,26 +288,48 @@ def create_spray_chart(ax):
         (-45, 90)    # Back to bottom left to close the shape
     ]
 
-    # Convert polar coordinates to Cartesian coordinates
-    cartesian_points = [
+    # Convert outline points to Cartesian coordinates
+    outline_cartesian = [
         (distance * np.cos(np.radians(angle)), distance * np.sin(np.radians(angle)))
-        for angle, distance in points
+        for angle, distance in outline_points
     ]
 
-    # Extract x and y coordinates
-    x_coords, y_coords = zip(*cartesian_points)
+    # Extract x and y coordinates for the outline
+    outline_x, outline_y = zip(*outline_cartesian)
 
-    # Plot the lines connecting the points
-    ax.plot(x_coords, y_coords, color='red', linewidth=2)
+    # Plot the outline
+    ax.plot(outline_x, outline_y, color='red', linewidth=2, label="Field Outline")
 
+    # Plot the Direction and Distance points from the data
+    if 'Direction' in data.columns and 'Distance' in data.columns:
+        # Convert Direction and Distance to Cartesian coordinates
+        data['Direction_rad'] = np.radians(data['Direction'])
+        data['X'] = data['Distance'] * np.cos(data['Direction_rad'])
+        data['Y'] = data['Distance'] * np.sin(data['Direction_rad'])
+
+        # Scatter plot the points with Exit Speed as the color
+        scatter = ax.scatter(
+            data['X'], 
+            data['Y'], 
+            c=data['Exitspeed'], 
+            cmap='coolwarm', 
+            s=50, 
+            edgecolor='k', 
+            label='Hits'
+        )
+        
+        # Add a colorbar
+        cbar = plt.colorbar(scatter, ax=ax)
+        cbar.set_label("Exit Speed")
+    
     # Set plot aesthetics
-    ax.set_title("Spray Chart Outline with Foul Lines")
+    ax.set_title("Spray Chart with Outline and Data Points")
     ax.set_xlabel("X (Feet)")
     ax.set_ylabel("Y (Feet)")
-    ax.set_xlim([-400, 400])  # Adjust as needed
+    ax.set_xlim([-450, 450])  # Adjust as needed
     ax.set_ylim([0, 450])  # Adjust as needed
     ax.set_aspect('equal')
-
+    ax.legend()
 
 
 
