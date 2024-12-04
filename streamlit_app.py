@@ -115,22 +115,91 @@ if selected_pitcher_hand != 'All':
 
 # Define Heatmap Function
 def create_heatmap(data, metric, ax):
+    # Check if the data is empty or the metric is not in the DataFrame
     if data.empty or metric not in data.columns:
         ax.set_title(f"No data available for {metric}.")
         ax.axis('off')
         return
+
+    # Define the strike zone boundaries
     x_min, x_max = -2.5, 2.5
     y_min, y_max = 0, 5
-    x_bins = np.linspace(x_min, x_max, 20)
-    y_bins = np.linspace(y_min, y_max, 20)
-    heatmap_data, _, _ = np.histogram2d(data['Platelocside'], data['Platelocheight'], bins=[x_bins, y_bins], weights=data[metric])
-    counts, _, _ = np.histogram2d(data['Platelocside'], data['Platelocheight'], bins=[x_bins, y_bins])
-    heatmap_data = np.divide(heatmap_data, counts, out=np.zeros_like(heatmap_data), where=counts != 0)
-    im = ax.imshow(heatmap_data.T, cmap='coolwarm', extent=[x_min, x_max, y_min, y_max], origin='lower', aspect='auto')
-    plt.colorbar(im, ax=ax).set_label(metric)
+
+    # Create 2D histogram bins
+    x_bins = np.linspace(x_min, x_max, 10)
+    y_bins = np.linspace(y_min, y_max, 10)
+
+    # Compute the 2D histogram
+    heatmap_data, xedges, yedges = np.histogram2d(
+        data['Platelocside'],
+        data['Platelocheight'],
+        bins=[x_bins, y_bins],
+        weights=data[metric],
+        density=False
+    )
+
+    # Normalize the heatmap data
+    counts, _, _ = np.histogram2d(
+        data['Platelocside'],
+        data['Platelocheight'],
+        bins=[x_bins, y_bins]
+    )
+    with np.errstate(divide='ignore', invalid='ignore'):
+        heatmap_data = np.divide(
+            heatmap_data,
+            counts,
+            out=np.full_like(heatmap_data, np.nan),  # Fill empty bins with NaN
+            where=counts != 0
+        )
+
+    # Mask the bins with NaN
+    heatmap_data = np.ma.masked_invalid(heatmap_data)
+
+    # Set the color scale limits for the heatmap based on the metric
+    if metric == 'Exitspeed':
+        vmin, vmax = 60, 100
+    elif metric == 'Angle':
+        vmin, vmax = -45, 45
+    else:
+        vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
+
+    # Plot the heatmap using imshow
+    extent = [x_min, x_max, y_min, y_max]
+    im = ax.imshow(
+        heatmap_data.T,
+        cmap='coolwarm',
+        origin='lower',
+        extent=extent,
+        aspect='auto',
+        vmin=vmin,
+        vmax=vmax
+    )
+
+    # Add a colorbar
+    cbar = plt.colorbar(im, ax=ax)
+    cbar.set_ticks([vmin, (vmin + vmax) / 2, vmax])  # Optional: Custom ticks
+    cbar.set_label(metric)  # Optional: Label the colorbar
+
+    # Draw the strike zone rectangle
+    ax.add_patch(plt.Rectangle(
+        (-0.83, 1.5),
+        1.66,
+        2.1,
+        edgecolor='black',
+        facecolor='none',
+        lw=2
+    ))
+
+    ax.set_title(metric)
+    ax.set_xlabel('PlateLocSide')
+    ax.set_ylabel('PlateLocHeight')
 
 # Define Spray Chart Function
 def create_spray_chart(data, ax):
+    if 'Direction' not in data.columns or 'Distance' not in data.columns or 'Exitspeed' not in data.columns:
+        ax.set_title("Spray Chart - Data Missing Required Columns")
+        ax.axis('off')
+        return
     data['Direction_rad'] = np.radians(data['Direction'])
     data['X'] = data['Distance'] * np.cos(data['Direction_rad'])
     data['Y'] = data['Distance'] * np.sin(data['Direction_rad'])
@@ -145,9 +214,24 @@ page = st.sidebar.radio("Select Page", ["Heatmaps", "Spray Chart"])
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
-    fig, axs = plt.subplots(1, 2, figsize=(18, 6))
-    create_heatmap(filtered_data, 'Angle', axs[0])
-    create_heatmap(filtered_data, 'Exitspeed', axs[1])
+    fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+    # Heatmap for Launch Angle
+    if 'Angle' in filtered_data.columns and not filtered_data['Angle'].isnull().all():
+        create_heatmap(filtered_data, 'Angle', axs[0])
+    else:
+        axs[0].set_title("Launch Angle")
+        axs[0].axis('off')
+        axs[0].text(0.5, 0.5, "Launch Angle Heatmap\n(Data Not Available)", horizontalalignment='center', verticalalignment='center')
+    # Heatmap for Exit Velocity
+    if 'Exitspeed' in filtered_data.columns and not filtered_data['Exitspeed'].isnull().all():
+        create_heatmap(filtered_data, 'Exitspeed', axs[1])
+    else:
+        axs[1].set_title("Exit Velocity")
+        axs[1].axis('off')
+        axs[1].text(0.5, 0.5, "Exit Velocity Heatmap\n(Data Not Available)", horizontalalignment='center', verticalalignment='center')
+    # Remove unused third subplot
+    axs[2].axis('off')
+    plt.tight_layout()
     st.pyplot(fig)
 elif page == "Spray Chart":
     st.title("Spray Chart")
