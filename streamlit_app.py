@@ -50,7 +50,7 @@ sns.set_theme(
     )
 
 # Load the CSV file
-file_path = "https://raw.githubusercontent.com/tdub29/streamlit-app-1/refs/heads/main/usd_baseball_TM_master_file.csv"
+#file_path = "https://raw.githubusercontent.com/tdub29/streamlit-app-1/refs/heads/main/usd_baseball_TM_master_file.csv"
 df = pd.read_csv(file_path)
 
 # Standardize column capitalization
