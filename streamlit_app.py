@@ -329,7 +329,7 @@ def create_spray_chart(data, ax):
     ax.set_title("Spray Chart with Outline and Rotated Data Points")
     ax.set_xlabel("X (Feet)")
     ax.set_ylabel("Y (Feet)")
-    ax.set_xlim([-100, 100])  # Adjust as needed
+    ax.set_xlim([-250, 250])  # Adjust as needed
     ax.set_ylim([0, 450])  # Adjust as needed
     ax.set_aspect('equal')
     ax.legend()
