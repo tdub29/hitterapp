@@ -290,7 +290,7 @@ def create_spray_chart(data, ax):
 
     # Convert outline points to Cartesian coordinates
     outline_cartesian = [
-        (distance * np.cos(np.radians(angle)), distance * np.sin(np.radians(angle)))
+        (-distance * np.sin(np.radians(angle)), distance * np.cos(np.radians(angle)))  # Apply 90° counterclockwise rotation
         for angle, distance in outline_points
     ]
 
@@ -302,15 +302,15 @@ def create_spray_chart(data, ax):
 
     # Plot the Direction and Distance points from the data
     if 'Direction' in data.columns and 'Distance' in data.columns:
-        # Convert Direction and Distance to Cartesian coordinates
+        # Convert Direction and Distance to Cartesian coordinates, including rotation
         data['Direction_rad'] = np.radians(data['Direction'])
-        data['X'] = data['Distance'] * np.cos(data['Direction_rad'])
-        data['Y'] = data['Distance'] * np.sin(data['Direction_rad'])
+        data['Rotated_X'] = -data['Distance'] * np.sin(data['Direction_rad'])  # Apply 90° counterclockwise rotation
+        data['Rotated_Y'] = data['Distance'] * np.cos(data['Direction_rad'])
 
         # Scatter plot the points with Exit Speed as the color
         scatter = ax.scatter(
-            data['X'], 
-            data['Y'], 
+            data['Rotated_X'], 
+            data['Rotated_Y'], 
             c=data['Exitspeed'], 
             cmap='coolwarm', 
             s=50, 
@@ -323,7 +323,7 @@ def create_spray_chart(data, ax):
         cbar.set_label("Exit Speed")
     
     # Set plot aesthetics
-    ax.set_title("Spray Chart with Outline and Data Points")
+    ax.set_title("Spray Chart with Outline and Rotated Data Points")
     ax.set_xlabel("X (Feet)")
     ax.set_ylabel("Y (Feet)")
     ax.set_xlim([-450, 450])  # Adjust as needed
