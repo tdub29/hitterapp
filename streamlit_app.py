@@ -119,8 +119,14 @@ selected_batters = st.sidebar.multiselect(
     batters,
     default=[default_batter] if default_batter else []
 )
-pitcher_hands = ['R', 'L']
-selected_pitcher_hand = st.sidebar.selectbox("Pitcher Hand", pitcher_hands)
+# Add an "All" option to the list of pitcher hands
+pitcher_hands = ['All', 'R', 'L']
+
+# Allow the user to select a pitcher hand, defaulting to "All"
+selected_pitcher_hand = st.sidebar.selectbox("Pitcher Hand", pitcher_hands, index=0)
+
+
+
 
 # Higher-level pitch categories
 pitch_categories_list = list(pitch_categories.keys())
@@ -172,14 +178,20 @@ count_option_to_column = {
 }
 
 # Filter data based on selection
+# Filter data based on selection
 filtered_data = df[
     (df['Batter'].isin(selected_batters)) &
     (df['Pitchcategory'].isin(selected_categories)) &
     (df['Autopitchtype'].isin(selected_pitch_types)) &
-    (df['Pitcherhand'] == selected_pitcher_hand) &
     (df['Exitspeed'] > 0) &
     (df['Exitspeed'].notnull())
 ]
+
+# Apply pitcher hand filtering if not 'All'
+if selected_pitcher_hand != 'All':
+    filtered_data = filtered_data[
+        (filtered_data['Pitcherhand'] == selected_pitcher_hand)
+    ]
 
 def create_heatmap(data, metric, ax):
     # Check if the data is empty or the metric is not in the DataFrame
