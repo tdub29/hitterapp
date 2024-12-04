@@ -1,11 +1,3 @@
-import streamlit as st
-import sys
-import subprocess
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-
 ##v2
 
 # Install scikit-learn if it's not already installed
@@ -15,8 +7,12 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "scikit-learn"])
     import sklearn
 
-# Load required libraries
-import sklearn
+import sklearn 
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import xgboost as xgb
 from statsmodels.nonparametric.kernel_regression import KernelReg
 
 # Define custom color palette
@@ -100,14 +96,84 @@ df['PitcherFriendly'] = df['Strikes'] > df['Balls']
 df['Exitspeed'] = pd.to_numeric(df['Exitspeed'], errors='coerce')
 df['Angle'] = pd.to_numeric(df['Angle'], errors='coerce')
 
-# Filter data based on valid 'Exitspeed' and 'Angle'
-df = df[df['Exitspeed'].notnull() & df['Angle'].notnull()]
+# Filter out invalid 'Exitspeed' and 'Angle' values if necessary
+df = df[df['Exitspeed'].notnull()]
+df = df[df['Angle'].notnull()]
 
-# Sidebar Filters
+# Create a mask where 'Exitspeed' and 'Angle' are not NaN
+mask = (df['Exitspeed'].notnull()) & (df['Angle'].notnull())
+
+# Streamlit Sidebar Filters
 st.sidebar.header("Filter Options")
+
+# First filter: Batter
+batters = df['Batter'].dropna().unique()
+batters = sorted(batters)
+default_batter = batters[0] if batters else None
+selected_batters = st.sidebar.multiselect(
+    "Select Batter(s)",
+    batters,
+    default=[default_batter] if default_batter else []
+)
+# Add an "All" option to the list of pitcher hands
 pitcher_hands = ['All', 'R', 'L']
+
+# Allow the user to select a pitcher hand, defaulting to "All"
 selected_pitcher_hand = st.sidebar.selectbox("Pitcher Hand", pitcher_hands, index=0)
 
+
+
+
+# Higher-level pitch categories
+pitch_categories_list = list(pitch_categories.keys())
+if 'Other' in df['Pitchcategory'].unique():
+    pitch_categories_list.append('Other')
+
+selected_categories = st.sidebar.multiselect("Select Pitch Category(s)", pitch_categories_list, default=pitch_categories_list)
+
+# Get the list of specific pitch types in the selected categories
+available_pitch_types = []
+for category in selected_categories:
+    if category in pitch_categories:
+        available_pitch_types.extend(pitch_categories[category])
+    else:
+        # For 'Other' category, get the pitch types not in any category
+        categorized_pitches = [pitch for pitches in pitch_categories.values() for pitch in pitches]
+        other_pitches = df[~df['Autopitchtype'].isin(categorized_pitches)]['Autopitchtype'].dropna()
+
+        # Convert all entries to strings and strip whitespace
+        other_pitches = other_pitches.astype(str).str.strip()
+
+        # Exclude empty strings and 'nan' strings
+        other_pitches = other_pitches[(other_pitches != '') & (other_pitches.str.lower() != 'nan')]
+
+        available_pitch_types.extend(other_pitches.tolist())
+
+# Convert all items to strings and strip whitespace
+available_pitch_types = [str(pitch).strip() for pitch in available_pitch_types]
+
+# Exclude empty strings and 'nan' strings
+available_pitch_types = [pitch for pitch in available_pitch_types if pitch and pitch.lower() != 'nan']
+
+# Remove duplicates
+available_pitch_types = list(set(available_pitch_types))
+
+# Sort the list
+available_pitch_types = sorted(available_pitch_types)
+
+selected_pitch_types = st.sidebar.multiselect("Select Pitch Type(s)", available_pitch_types, default=available_pitch_types)
+
+# Map count options to boolean column names
+count_option_to_column = {
+    '1st-pitch': 'FirstPitch',
+    '2-Strike': 'TwoStrike',
+    '3-Ball': 'ThreeBall',
+    'Even': 'EvenCount',
+    'Hitter-Friendly': 'HitterFriendly',
+    'Pitcher-Friendly': 'PitcherFriendly'
+}
+
+# Filter data based on selection
 # Filter data based on selection
 filtered_data = df[
     (df['Batter'].isin(selected_batters)) &
@@ -123,7 +189,6 @@ if selected_pitcher_hand != 'All':
         (filtered_data['Pitcherhand'] == selected_pitcher_hand)
     ]
 
-# Define Heatmap Function
 def create_heatmap(data, metric, ax):
     # Check if the data is empty or the metric is not in the DataFrame
     if data.empty or metric not in data.columns:
@@ -204,27 +269,50 @@ def create_heatmap(data, metric, ax):
     ax.set_xlabel('PlateLocSide')
     ax.set_ylabel('PlateLocHeight')
 
-# Define Spray Chart Function
+# Spray Chart Function
 def create_spray_chart(data, ax):
+    # Check for necessary columns
     if 'Direction' not in data.columns or 'Distance' not in data.columns or 'Exitspeed' not in data.columns:
-        ax.set_title("Spray Chart - Data Missing Required Columns")
+        ax.set_title("Spray Chart - Missing Data")
         ax.axis('off')
         return
+    
+    # Convert Direction to radians and calculate X, Y positions
     data['Direction_rad'] = np.radians(data['Direction'])
     data['X'] = data['Distance'] * np.cos(data['Direction_rad'])
     data['Y'] = data['Distance'] * np.sin(data['Direction_rad'])
-    scatter = ax.scatter(data['X'], data['Y'], c=data['Exitspeed'], cmap='coolwarm', s=50, edgecolor='k')
-    plt.colorbar(scatter, ax=ax).set_label('Exit Speed')
+    
+    # Scatter plot with ExitSpeed as the color
+    scatter = ax.scatter(
+        data['X'], 
+        data['Y'], 
+        c=data['Exitspeed'], 
+        cmap='coolwarm', 
+        s=50, 
+        edgecolor='k'
+    )
+    
+    # Add a colorbar
+    cbar = plt.colorbar(scatter, ax=ax)
+    cbar.set_label('Exit Speed')
+    
+    # Set plot aesthetics
     ax.set_title("Spray Chart")
+    ax.set_xlabel("X (Adjusted by Direction)")
+    ax.set_ylabel("Y (Adjusted by Direction)")
     ax.set_aspect('equal')
 
-# Main App Logic
+# Streamlit Page Navigation
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Select Page", ["Heatmaps", "Spray Chart"])
 
+# Heatmaps Page
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
+
+    # Create subplots for the heatmaps
     fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+
     # Heatmap for Launch Angle
     if 'Angle' in filtered_data.columns and not filtered_data['Angle'].isnull().all():
         create_heatmap(filtered_data, 'Angle', axs[0])
@@ -232,6 +320,7 @@ if page == "Heatmaps":
         axs[0].set_title("Launch Angle")
         axs[0].axis('off')
         axs[0].text(0.5, 0.5, "Launch Angle Heatmap\n(Data Not Available)", horizontalalignment='center', verticalalignment='center')
+
     # Heatmap for Exit Velocity
     if 'Exitspeed' in filtered_data.columns and not filtered_data['Exitspeed'].isnull().all():
         create_heatmap(filtered_data, 'Exitspeed', axs[1])
@@ -239,13 +328,23 @@ if page == "Heatmaps":
         axs[1].set_title("Exit Velocity")
         axs[1].axis('off')
         axs[1].text(0.5, 0.5, "Exit Velocity Heatmap\n(Data Not Available)", horizontalalignment='center', verticalalignment='center')
-    # Remove unused third subplot
-    axs[2].axis('off')
+
+    # Heatmap for Predicted SLG (if applicable)
+    axs[2].axis('off')  # Placeholder if no third heatmap is required
+
+    # Adjust layout
     plt.tight_layout()
     st.pyplot(fig)
+
+# Spray Chart Page
 elif page == "Spray Chart":
     st.title("Spray Chart")
-    spray_data = filtered_data[filtered_data['Direction'].notnull() & filtered_data['Distance'].notnull()]
+    spray_data = filtered_data[
+        filtered_data['Direction'].notnull() & 
+        filtered_data['Distance'].notnull()
+    ]
+    
+    # Create Spray Chart
     fig, ax = plt.subplots(figsize=(10, 8))
     create_spray_chart(spray_data, ax)
     st.pyplot(fig)
