@@ -289,6 +289,25 @@ def create_spray_chart(data, ax):
     data['Rotated_X'] = -data['Y']
     data['Rotated_Y'] = data['X']
     
+    # Plot the diamond (basepaths)
+    bases = np.array([
+        [0, 0],  # Home plate
+        [90, 0],  # First base
+        [90, 90],  # Second base
+        [0, 90],  # Third base
+        [0, 0]  # Back to home plate
+    ])
+    ax.plot(bases[:, 0], bases[:, 1], 'k-', linewidth=2, label="Basepath")
+    
+    # Plot foul lines
+    foul_line_right_x = [0, 325 * np.cos(np.radians(45))]
+    foul_line_right_y = [0, 325 * np.sin(np.radians(45))]
+    foul_line_left_x = [0, 315 * np.cos(np.radians(315))]
+    foul_line_left_y = [0, 315 * np.sin(np.radians(315))]
+    
+    ax.plot(foul_line_right_x, foul_line_right_y, 'r--', label="Foul Line (Right)")
+    ax.plot(foul_line_left_x, foul_line_left_y, 'r--', label="Foul Line (Left)")
+    
     # Scatter plot with ExitSpeed as the color
     scatter = ax.scatter(
         data['Rotated_X'], 
@@ -304,10 +323,14 @@ def create_spray_chart(data, ax):
     cbar.set_label('Exit Speed')
     
     # Set plot aesthetics
-    ax.set_title("Spray Chart (Rotated Counterclockwise)")
+    ax.set_title("Spray Chart")
     ax.set_xlabel("X")
     ax.set_ylabel("Distance")
+    ax.set_xlim([-400, 400])  # Adjust as needed
+    ax.set_ylim([0, 400])  # Adjust as needed
     ax.set_aspect('equal')
+    ax.legend()
+
 
 
 # Streamlit Page Navigation
