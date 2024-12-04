@@ -108,10 +108,20 @@ st.sidebar.header("Filter Options")
 pitcher_hands = ['All', 'R', 'L']
 selected_pitcher_hand = st.sidebar.selectbox("Pitcher Hand", pitcher_hands, index=0)
 
-# Data Filtering
-filtered_data = df.copy()
+# Filter data based on selection
+filtered_data = df[
+    (df['Batter'].isin(selected_batters)) &
+    (df['Pitchcategory'].isin(selected_categories)) &
+    (df['Autopitchtype'].isin(selected_pitch_types)) &
+    (df['Exitspeed'] > 0) &
+    (df['Exitspeed'].notnull())
+]
+
+# Apply pitcher hand filtering if not 'All'
 if selected_pitcher_hand != 'All':
-    filtered_data = filtered_data[filtered_data['Pitcherhand'] == selected_pitcher_hand]
+    filtered_data = filtered_data[
+        (filtered_data['Pitcherhand'] == selected_pitcher_hand)
+    ]
 
 # Define Heatmap Function
 def create_heatmap(data, metric, ax):
