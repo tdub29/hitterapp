@@ -1,3 +1,6 @@
+import sys
+import subprocess
+import streamlit st
 ##v2
 
 # Install scikit-learn if it's not already installed
