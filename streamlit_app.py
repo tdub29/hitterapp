@@ -15,6 +15,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.patches as Arc
 import xgboost as xgb
 from statsmodels.nonparametric.kernel_regression import KernelReg
 
@@ -289,26 +290,37 @@ def create_spray_chart(data, ax):
     data['Rotated_X'] = -data['Y']
     data['Rotated_Y'] = data['X']
     
-    # Plot the diamond (basepaths)
-    bases = np.array([
-        [0, 0],  # Home plate
-        [90, 0],  # First base
-        [90, 90],  # Second base
-        [0, 90],  # Third base
-        [0, 0]  # Back to home plate
-    ])
-    ax.plot(bases[:, 0], bases[:, 1], 'k-', linewidth=2, label="Basepath")
-    
-    # Plot foul lines with specified distances
-    # Right foul line: 325 feet at 45 degrees
+    # Plot foul lines
     foul_line_right_x = [0, 325 * np.cos(np.radians(45))]
     foul_line_right_y = [0, 325 * np.sin(np.radians(45))]
-    # Left foul line: 315 feet at 135 degrees (counterclockwise from 0)
     foul_line_left_x = [0, 315 * np.cos(np.radians(135))]
     foul_line_left_y = [0, 315 * np.sin(np.radians(135))]
     
     ax.plot(foul_line_right_x, foul_line_right_y, 'r--', label="Foul Line (Right)")
     ax.plot(foul_line_left_x, foul_line_left_y, 'r--', label="Foul Line (Left)")
+    
+    # Draw half-circle arcs at the endpoints of the foul lines
+    # Right half-circle
+    right_arc_center = (foul_line_right_x[1], foul_line_right_y[1])
+    right_arc = Arc(
+        right_arc_center,  # Center of the arc
+        180, 180,  # Width and height of the ellipse
+        angle=45,  # Rotation of the ellipse
+        theta1=180, theta2=360,  # Start and end angles for the arc
+        edgecolor="blue", linestyle="--", linewidth=2
+    )
+    ax.add_patch(right_arc)
+
+    # Left half-circle
+    left_arc_center = (foul_line_left_x[1], foul_line_left_y[1])
+    left_arc = Arc(
+        left_arc_center,  # Center of the arc
+        180, 180,  # Width and height of the ellipse
+        angle=135,  # Rotation of the ellipse
+        theta1=0, theta2=180,  # Start and end angles for the arc
+        edgecolor="blue", linestyle="--", linewidth=2
+    )
+    ax.add_patch(left_arc)
     
     # Scatter plot with ExitSpeed as the color
     scatter = ax.scatter(
@@ -325,13 +337,14 @@ def create_spray_chart(data, ax):
     cbar.set_label('Exit Speed')
     
     # Set plot aesthetics
-    ax.set_title("Spray Chart with Basepaths and Foul Lines")
+    ax.set_title("Spray Chart with Foul Line Half-Circles")
     ax.set_xlabel("X (Rotated by Direction)")
     ax.set_ylabel("Y (Distance)")
     ax.set_xlim([-400, 400])  # Adjust as needed
     ax.set_ylim([0, 400])  # Adjust as needed
     ax.set_aspect('equal')
     ax.legend()
+
 
 
 
