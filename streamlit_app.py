@@ -205,8 +205,8 @@ def create_heatmap(data, metric, ax):
     y_min, y_max = 0, 5
 
     # Create 2D histogram bins
-    x_bins = np.linspace(x_min, x_max, 20)
-    y_bins = np.linspace(y_min, y_max, 20)
+    x_bins = np.linspace(x_min, x_max, 10)
+    y_bins = np.linspace(y_min, y_max, 10)
 
     # Compute the 2D histogram
     heatmap_data, xedges, yedges = np.histogram2d(
