@@ -274,76 +274,39 @@ def create_heatmap(data, metric, ax):
     ax.set_ylabel('PlateLocHeight')
 
 # Spray Chart Function
-def create_spray_chart(data, ax):
-    # Check for necessary columns
-    if 'Direction' not in data.columns or 'Distance' not in data.columns or 'Exitspeed' not in data.columns:
-        ax.set_title("Spray Chart - Missing Data")
-        ax.axis('off')
-        return
-    
-    # Convert Direction to radians and calculate X, Y positions
-    data['Direction_rad'] = np.radians(data['Direction'])
-    data['X'] = data['Distance'] * np.cos(data['Direction_rad'])
-    data['Y'] = data['Distance'] * np.sin(data['Direction_rad'])
-    
-    # Rotate coordinates counterclockwise by 90 degrees
-    data['Rotated_X'] = -data['Y']
-    data['Rotated_Y'] = data['X']
-    
-    # Plot foul lines
-    foul_line_right_x = [0, 325 * np.cos(np.radians(45))]
-    foul_line_right_y = [0, 325 * np.sin(np.radians(45))]
-    foul_line_left_x = [0, 315 * np.cos(np.radians(135))]
-    foul_line_left_y = [0, 315 * np.sin(np.radians(135))]
-    
-    ax.plot(foul_line_right_x, foul_line_right_y, 'r--', label="Foul Line (Right)")
-    ax.plot(foul_line_left_x, foul_line_left_y, 'r--', label="Foul Line (Left)")
-    
-    # Draw half-circle arcs at the endpoints of the foul lines
-    # Right half-circle
-    right_arc_center = (foul_line_right_x[1], foul_line_right_y[1])
-    right_arc = Arc(
-        right_arc_center,  # Center of the arc
-        180, 180,  # Width and height of the ellipse
-        angle=45,  # Rotation of the ellipse
-        theta1=180, theta2=360,  # Start and end angles for the arc
-        edgecolor="blue", linestyle="--", linewidth=2
-    )
-    ax.add_patch(right_arc)
+def create_spray_chart(ax):
+    # Define points in polar coordinates (angle in degrees, distance in feet)
+    points = [
+        (-45, 90),  # Bottom left
+        (-45, 315),  # Top left
+        (-15, 375),  # Top center left
+        (0, 405),    # Top center
+        (15, 375),   # Top center right
+        (45, 325),   # Top right
+        (45, 90),    # Bottom right
+        (0, 128),    # Bottom center (home plate extension)
+        (-45, 90)    # Back to bottom left to close the shape
+    ]
 
-    # Left half-circle
-    left_arc_center = (foul_line_left_x[1], foul_line_left_y[1])
-    left_arc = Arc(
-        left_arc_center,  # Center of the arc
-        180, 180,  # Width and height of the ellipse
-        angle=135,  # Rotation of the ellipse
-        theta1=0, theta2=180,  # Start and end angles for the arc
-        edgecolor="blue", linestyle="--", linewidth=2
-    )
-    ax.add_patch(left_arc)
-    
-    # Scatter plot with ExitSpeed as the color
-    scatter = ax.scatter(
-        data['Rotated_X'], 
-        data['Rotated_Y'], 
-        c=data['Exitspeed'], 
-        cmap='coolwarm', 
-        s=50, 
-        edgecolor='k'
-    )
-    
-    # Add a colorbar
-    cbar = plt.colorbar(scatter, ax=ax)
-    cbar.set_label('Exit Speed')
-    
+    # Convert polar coordinates to Cartesian coordinates
+    cartesian_points = [
+        (distance * np.cos(np.radians(angle)), distance * np.sin(np.radians(angle)))
+        for angle, distance in points
+    ]
+
+    # Extract x and y coordinates
+    x_coords, y_coords = zip(*cartesian_points)
+
+    # Plot the lines connecting the points
+    ax.plot(x_coords, y_coords, color='red', linewidth=2)
+
     # Set plot aesthetics
-    ax.set_title("Spray Chart with Foul Line Half-Circles")
-    ax.set_xlabel("X (Rotated by Direction)")
-    ax.set_ylabel("Y (Distance)")
+    ax.set_title("Spray Chart Outline with Foul Lines")
+    ax.set_xlabel("X (Feet)")
+    ax.set_ylabel("Y (Feet)")
     ax.set_xlim([-400, 400])  # Adjust as needed
-    ax.set_ylim([0, 400])  # Adjust as needed
+    ax.set_ylim([0, 450])  # Adjust as needed
     ax.set_aspect('equal')
-    ax.legend()
 
 
 
