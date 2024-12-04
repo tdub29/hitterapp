@@ -299,11 +299,13 @@ def create_spray_chart(data, ax):
     ])
     ax.plot(bases[:, 0], bases[:, 1], 'k-', linewidth=2, label="Basepath")
     
-    # Plot foul lines
+    # Plot foul lines with specified distances
+    # Right foul line: 325 feet at 45 degrees
     foul_line_right_x = [0, 325 * np.cos(np.radians(45))]
     foul_line_right_y = [0, 325 * np.sin(np.radians(45))]
-    foul_line_left_x = [0, 315 * np.cos(np.radians(315))]
-    foul_line_left_y = [0, 315 * np.sin(np.radians(315))]
+    # Left foul line: 315 feet at 135 degrees (counterclockwise from 0)
+    foul_line_left_x = [0, 315 * np.cos(np.radians(135))]
+    foul_line_left_y = [0, 315 * np.sin(np.radians(135))]
     
     ax.plot(foul_line_right_x, foul_line_right_y, 'r--', label="Foul Line (Right)")
     ax.plot(foul_line_left_x, foul_line_left_y, 'r--', label="Foul Line (Left)")
@@ -323,13 +325,14 @@ def create_spray_chart(data, ax):
     cbar.set_label('Exit Speed')
     
     # Set plot aesthetics
-    ax.set_title("Spray Chart")
-    ax.set_xlabel("X")
-    ax.set_ylabel("Distance")
+    ax.set_title("Spray Chart with Basepaths and Foul Lines")
+    ax.set_xlabel("X (Rotated by Direction)")
+    ax.set_ylabel("Y (Distance)")
     ax.set_xlim([-400, 400])  # Adjust as needed
     ax.set_ylim([0, 400])  # Adjust as needed
     ax.set_aspect('equal')
     ax.legend()
+
 
 
 
