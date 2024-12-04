@@ -277,6 +277,7 @@ def create_heatmap(data, metric, ax):
 def create_spray_chart(data, ax):
     # Define outline points in polar coordinates (angle in degrees, distance in feet)
     outline_points = [
+        (o,0),
         (-45, 90),  # Bottom left
         (-45, 315),  # Top left
         (-15, 375),  # Top center left
@@ -285,7 +286,8 @@ def create_spray_chart(data, ax):
         (45, 325),   # Top right
         (45, 90),    # Bottom right
         (0, 128),    # Bottom center (home plate extension)
-        (-45, 90)    # Back to bottom left to close the shape
+        (-45, 90) ,
+        (0,0)# Back to bottom left to close the shape
     ]
 
     # Convert outline points to Cartesian coordinates
