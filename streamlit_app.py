@@ -1,4 +1,4 @@
-import sys 
+import sys
 import subprocess
 import streamlit as st
 ##v2
@@ -10,7 +10,7 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "scikit-learn"])
     import sklearn
 
-import sklearn 
+import sklearn
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -145,22 +145,13 @@ for category in selected_categories:
 
         # Convert all entries to strings and strip whitespace
         other_pitches = other_pitches.astype(str).str.strip()
-
-        # Exclude empty strings and 'nan' strings
         other_pitches = other_pitches[(other_pitches != '') & (other_pitches.str.lower() != 'nan')]
 
         available_pitch_types.extend(other_pitches.tolist())
 
-# Convert all items to strings and strip whitespace
 available_pitch_types = [str(pitch).strip() for pitch in available_pitch_types]
-
-# Exclude empty strings and 'nan' strings
 available_pitch_types = [pitch for pitch in available_pitch_types if pitch and pitch.lower() != 'nan']
-
-# Remove duplicates
 available_pitch_types = list(set(available_pitch_types))
-
-# Sort the list
 available_pitch_types = sorted(available_pitch_types)
 
 selected_pitch_types = st.sidebar.multiselect("Select Pitch Type(s)", available_pitch_types, default=available_pitch_types)
@@ -175,7 +166,6 @@ count_option_to_column = {
     'Pitcher-Friendly': 'Pitcherfriendly'
 }
 
-# Filter data based on selection
 filtered_data = df[
     (df['Batter'].isin(selected_batters)) &
     (df['Pitchcategory'].isin(selected_categories)) &
@@ -189,21 +179,17 @@ if selected_pitcher_hand != 'All':
     filtered_data = filtered_data[(filtered_data['Pitcherhand'] == selected_pitcher_hand)]
 
 def create_heatmap(data, metric, ax):
-    # Check if the data is empty or the metric is not in the DataFrame
     if data.empty or metric not in data.columns:
         ax.set_title(f"No data available for {metric}.")
         ax.axis('off')
         return
 
-    # Define the strike zone boundaries
     x_min, x_max = -2.5, 2.5
     y_min, y_max = 0, 5
 
-    # Create 2D histogram bins
     x_bins = np.linspace(x_min, x_max, 10)
     y_bins = np.linspace(y_min, y_max, 10)
 
-    # Compute the 2D histogram
     heatmap_data, xedges, yedges = np.histogram2d(
         data['Platelocside'],
         data['Platelocheight'],
@@ -212,7 +198,6 @@ def create_heatmap(data, metric, ax):
         density=False
     )
 
-    # Normalize the heatmap data
     counts, _, _ = np.histogram2d(
         data['Platelocside'],
         data['Platelocheight'],
@@ -228,7 +213,6 @@ def create_heatmap(data, metric, ax):
 
     heatmap_data = np.ma.masked_invalid(heatmap_data)
 
-    # Set the color scale limits for the heatmap based on the metric
     if metric == 'Exitspeed':
         vmin, vmax = 60, 100
     elif metric == 'Angle':
@@ -236,7 +220,6 @@ def create_heatmap(data, metric, ax):
     else:
         vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
 
-    # Plot the heatmap using imshow
     extent = [x_min, x_max, y_min, y_max]
     im = ax.imshow(
         heatmap_data.T,
@@ -252,7 +235,6 @@ def create_heatmap(data, metric, ax):
     cbar.set_ticks([vmin, (vmin + vmax) / 2, vmax])
     cbar.set_label(metric)
 
-    # Draw the strike zone rectangle
     ax.add_patch(plt.Rectangle(
         (-0.83, 1.5),
         1.66,
@@ -267,7 +249,6 @@ def create_heatmap(data, metric, ax):
     ax.set_ylabel('PlateLocHeight')
 
 def create_spray_chart(data, ax):
-    # Define outline points in polar coordinates (angle in degrees, distance in feet)
     outline_points = [
         (0, 0),
         (-45, 90),
@@ -296,18 +277,18 @@ def create_spray_chart(data, ax):
         data['Rotated_Y'] = data['Distance'] * np.cos(data['Direction_rad'])
 
         scatter = ax.scatter(
-            data['Rotated_X'], 
-            data['Rotated_Y'], 
-            c=data['Exitspeed'], 
-            cmap='coolwarm', 
-            s=50, 
-            edgecolor='k', 
+            data['Rotated_X'],
+            data['Rotated_Y'],
+            c=data['Exitspeed'],
+            cmap='coolwarm',
+            s=50,
+            edgecolor='k',
             label='Hits'
         )
-        
+
         cbar = plt.colorbar(scatter, ax=ax)
         cbar.set_label("Exit Speed")
-    
+
     ax.set_title("Spray Chart with Outline and Rotated Data Points")
     ax.set_xlabel("X (Feet)")
     ax.set_ylabel("Y (Feet)")
@@ -317,31 +298,28 @@ def create_spray_chart(data, ax):
     ax.legend()
 
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Select Page", ["Heatmaps", "Spray Chart"])
+page = st.sidebar.radio("Select Page", ["Heatmaps", "Spray Chart", "Hitter Metrics"])
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
     fig, axs = plt.subplots(1, 3, figsize=(18, 6))
 
-    # Heatmap for Launch Angle
     if 'Angle' in filtered_data.columns and not filtered_data['Angle'].isnull().all():
         create_heatmap(filtered_data, 'Angle', axs[0])
     else:
         axs[0].set_title("Launch Angle")
         axs[0].axis('off')
-        axs[0].text(0.5, 0.5, "Launch Angle Heatmap\n(Data Not Available)", 
+        axs[0].text(0.5, 0.5, "Launch Angle Heatmap\n(Data Not Available)",
                     horizontalalignment='center', verticalalignment='center')
 
-    # Heatmap for Exit Velocity
     if 'Exitspeed' in filtered_data.columns and not filtered_data['Exitspeed'].isnull().all():
         create_heatmap(filtered_data, 'Exitspeed', axs[1])
     else:
         axs[1].set_title("Exit Velocity")
         axs[1].axis('off')
-        axs[1].text(0.5, 0.5, "Exit Velocity Heatmap\n(Data Not Available)", 
+        axs[1].text(0.5, 0.5, "Exit Velocity Heatmap\n(Data Not Available)",
                     horizontalalignment='center', verticalalignment='center')
 
-    # Third heatmap placeholder
     axs[2].axis('off')
 
     plt.tight_layout()
@@ -350,108 +328,100 @@ if page == "Heatmaps":
 elif page == "Spray Chart":
     st.title("Spray Chart")
     spray_data = filtered_data[
-        filtered_data['Direction'].notnull() & 
+        filtered_data['Direction'].notnull() &
         filtered_data['Distance'].notnull()
     ]
-    
+
     fig, ax = plt.subplots(figsize=(10, 8))
     create_spray_chart(spray_data, ax)
     st.pyplot(fig)
 
-###################################
-# NEW CODE FOR HITTER METRICS TABLE
-###################################
+elif page == "Hitter Metrics":
+    st.title("Hitter Metrics")
 
-if not filtered_data.empty:
-    total_events = len(filtered_data)
+    if not filtered_data.empty:
+        total_events = len(filtered_data)
 
-    # Average EV
-    avg_ev = filtered_data['Exitspeed'].mean() if 'Exitspeed' in filtered_data else np.nan
+        # Average EV
+        avg_ev = filtered_data['Exitspeed'].mean() if 'Exitspeed' in filtered_data else np.nan
 
-    # Max EV
-    max_ev = filtered_data['Exitspeed'].max() if 'Exitspeed' in filtered_data else np.nan
+        # Max EV
+        max_ev = filtered_data['Exitspeed'].max() if 'Exitspeed' in filtered_data else np.nan
 
-    # HARD HIT% (exitspeed > 90)
-    hard_hit_count = (filtered_data['Exitspeed'] > 90).sum()
-    hard_hit_pct = hard_hit_count / total_events if total_events > 0 else np.nan
+        # HARD HIT% (exitspeed > 90)
+        hard_hit_count = (filtered_data['Exitspeed'] > 90).sum()
+        hard_hit_pct = hard_hit_count / total_events if total_events > 0 else np.nan
 
-    # BARREL% (EV>=99 and angle between 25 and 31 inclusive)
-    barrel_mask = (filtered_data['Exitspeed'] >= 99) & (filtered_data['Angle'].between(25,31))
-    barrel_count = barrel_mask.sum()
-    barrel_pct = barrel_count / total_events if total_events > 0 else np.nan
+        # BARREL% (EV>=99 and angle between 25 and 31 inclusive)
+        barrel_mask = (filtered_data['Exitspeed'] >= 99) & (filtered_data['Angle'].between(25,31))
+        barrel_count = barrel_mask.sum()
+        barrel_pct = barrel_count / total_events if total_events > 0 else np.nan
 
-    # 90TH% EV - NA
-    ev_90th = 'NA'
+        # 90TH% EV - NA
+        ev_90th = 'NA'
 
-    # zCONTACT - NA
-    zcontact = 'NA'
+        # zCONTACT - NA
+        zcontact = 'NA'
 
-    # SwStrk% - NA
-    swstrk_pct = 'NA'
+        # SwStrk% - NA
+        swstrk_pct = 'NA'
 
-    # K-BB% - NA
-    kbb_pct = 'NA'
+        # K-BB% - NA
+        kbb_pct = 'NA'
 
-    # CONTACT% - NA
-    contact_pct = 'NA'
+        # CONTACT% - NA
+        contact_pct = 'NA'
 
-    # zSWING-CHASE% - NA
-    z_swing_chase_pct = 'NA'
+        # zSWING-CHASE% - NA
+        z_swing_chase_pct = 'NA'
 
-    # xWOBA - NA
-    xwoba = 'NA'
+        # xWOBA - NA
+        xwoba = 'NA'
 
-    # GB% (angle <0)
-    gb_count = (filtered_data['Angle'] < 0).sum()
-    gb_pct = gb_count / total_events if total_events > 0 else np.nan
+        # GB% (angle <0)
+        gb_count = (filtered_data['Angle'] < 0).sum()
+        gb_pct = gb_count / total_events if total_events > 0 else np.nan
 
-    # PULL% (depends on batterside)
-    # Assume single batter side or if multiple, just pick the first unique
-    if 'Batterside' in filtered_data.columns and not filtered_data['Batterside'].isnull().all():
-        batter_sides = filtered_data['Batterside'].dropna().unique()
-        if len(batter_sides) > 0:
-            batter_side = batter_sides[0]
+        # PULL% (depends on batterside)
+        if 'Batterside' in filtered_data.columns and not filtered_data['Batterside'].isnull().all():
+            batter_sides = filtered_data['Batterside'].dropna().unique()
+            if len(batter_sides) > 0:
+                batter_side = batter_sides[0]
+            else:
+                batter_side = None
         else:
             batter_side = None
+
+        if batter_side == 'L':
+            pull_count = (filtered_data['Direction'] > 0).sum()
+        elif batter_side == 'R':
+            pull_count = (filtered_data['Direction'] < 0).sum()
+        else:
+            pull_count = np.nan
+
+        pull_pct = pull_count / total_events if total_events > 0 and not np.isnan(pull_count) else np.nan
+
+        # POP FLY% angle>50 and EV<85
+        pop_fly_count = ((filtered_data['Angle'] > 50) & (filtered_data['Exitspeed'] < 85)).sum()
+        pop_fly_pct = pop_fly_count / total_events if total_events > 0 else np.nan
+
+        metrics_df = pd.DataFrame({
+            'Average EV': [avg_ev],
+            'Max EV': [max_ev],
+            'Hard Hit%': [hard_hit_pct],
+            'Barrel%': [barrel_pct],
+            '90TH% EV': [ev_90th],
+            'zCONTACT': [zcontact],
+            'SwStrk%': [swstrk_pct],
+            'K-BB%': [kbb_pct],
+            'CONTACT%': [contact_pct],
+            'zSWING-CHASE%': [z_swing_chase_pct],
+            'xWOBA': [xwoba],
+            'GB%': [gb_pct],
+            'PULL%': [pull_pct],
+            'POP FLY%': [pop_fly_pct]
+        })
+
+        st.table(metrics_df)
     else:
-        batter_side = None
-
-    if batter_side == 'L':
-        # Pulled = direction > 0
-        pull_count = (filtered_data['Direction'] > 0).sum()
-    elif batter_side == 'R':
-        # Pulled = direction < 0
-        pull_count = (filtered_data['Direction'] < 0).sum()
-    else:
-        # If unknown, set pull_count to NaN
-        pull_count = np.nan
-
-    pull_pct = pull_count / total_events if total_events > 0 and not np.isnan(pull_count) else np.nan
-
-    # POP FLY% angle>50 and EV<85
-    pop_fly_count = ((filtered_data['Angle'] > 50) & (filtered_data['Exitspeed'] < 85)).sum()
-    pop_fly_pct = pop_fly_count / total_events if total_events > 0 else np.nan
-
-    # Create a DataFrame for the metrics
-    metrics_df = pd.DataFrame({
-        'Average EV': [avg_ev],
-        'Max EV': [max_ev],
-        'Hard Hit%': [hard_hit_pct],
-        'Barrel%': [barrel_pct],
-        '90TH% EV': [ev_90th],
-        'zCONTACT': [zcontact],
-        'SwStrk%': [swstrk_pct],
-        'K-BB%': [kbb_pct],
-        'CONTACT%': [contact_pct],
-        'zSWING-CHASE%': [z_swing_chase_pct],
-        'xWOBA': [xwoba],
-        'GB%': [gb_pct],
-        'PULL%': [pull_pct],
-        'POP FLY%': [pop_fly_pct]
-    })
-
-    st.header("Hitter Metrics")
-    st.table(metrics_df)
-else:
-    st.header("Hitter Metrics")
-    st.write("No data available for the selected filters.")
+        st.write("No data available for the selected filters.")
