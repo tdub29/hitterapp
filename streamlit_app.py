@@ -1,4 +1,4 @@
-import sys
+import sys 
 import subprocess
 import streamlit as st
 ##v2
@@ -89,12 +89,12 @@ def categorize_pitch_type(pitch_type):
 df['Pitchcategory'] = df['Autopitchtype'].apply(categorize_pitch_type)
 
 # Create boolean columns for each count category
-df['FirstPitch'] = (df['Balls'] == 0) & (df['Strikes'] == 0)
-df['TwoStrike'] = df['Strikes'] == 2
-df['ThreeBall'] = df['Balls'] == 3
-df['EvenCount'] = (df['Balls'] == df['Strikes']) & (df['Balls'] != 0)
-df['HitterFriendly'] = df['Balls'] > df['Strikes']
-df['PitcherFriendly'] = df['Strikes'] > df['Balls']
+df['Firstpitch'] = (df['Balls'] == 0) & (df['Strikes'] == 0)
+df['Twostrike'] = df['Strikes'] == 2
+df['Threeball'] = df['Balls'] == 3
+df['Evencount'] = (df['Balls'] == df['Strikes']) & (df['Balls'] != 0)
+df['Hitterfriendly'] = df['Balls'] > df['Strikes']
+df['Pitcherfriendly'] = df['Strikes'] > df['Balls']
 
 # Ensure 'Exitspeed' and 'Angle' are numeric
 df['Exitspeed'] = pd.to_numeric(df['Exitspeed'], errors='coerce')
@@ -119,14 +119,12 @@ selected_batters = st.sidebar.multiselect(
     batters,
     default=[default_batter] if default_batter else []
 )
+
 # Add an "All" option to the list of pitcher hands
 pitcher_hands = ['All', 'R', 'L']
 
 # Allow the user to select a pitcher hand, defaulting to "All"
 selected_pitcher_hand = st.sidebar.selectbox("Pitcher Hand", pitcher_hands, index=0)
-
-
-
 
 # Higher-level pitch categories
 pitch_categories_list = list(pitch_categories.keys())
@@ -169,15 +167,14 @@ selected_pitch_types = st.sidebar.multiselect("Select Pitch Type(s)", available_
 
 # Map count options to boolean column names
 count_option_to_column = {
-    '1st-pitch': 'FirstPitch',
-    '2-Strike': 'TwoStrike',
-    '3-Ball': 'ThreeBall',
-    'Even': 'EvenCount',
-    'Hitter-Friendly': 'HitterFriendly',
-    'Pitcher-Friendly': 'PitcherFriendly'
+    '1st-pitch': 'Firstpitch',
+    '2-Strike': 'Twostrike',
+    '3-Ball': 'Threeball',
+    'Even': 'Evencount',
+    'Hitter-Friendly': 'Hitterfriendly',
+    'Pitcher-Friendly': 'Pitcherfriendly'
 }
 
-# Filter data based on selection
 # Filter data based on selection
 filtered_data = df[
     (df['Batter'].isin(selected_batters)) &
@@ -189,9 +186,7 @@ filtered_data = df[
 
 # Apply pitcher hand filtering if not 'All'
 if selected_pitcher_hand != 'All':
-    filtered_data = filtered_data[
-        (filtered_data['Pitcherhand'] == selected_pitcher_hand)
-    ]
+    filtered_data = filtered_data[(filtered_data['Pitcherhand'] == selected_pitcher_hand)]
 
 def create_heatmap(data, metric, ax):
     # Check if the data is empty or the metric is not in the DataFrame
@@ -227,11 +222,10 @@ def create_heatmap(data, metric, ax):
         heatmap_data = np.divide(
             heatmap_data,
             counts,
-            out=np.full_like(heatmap_data, np.nan),  # Fill empty bins with NaN
+            out=np.full_like(heatmap_data, np.nan),
             where=counts != 0
         )
 
-    # Mask the bins with NaN
     heatmap_data = np.ma.masked_invalid(heatmap_data)
 
     # Set the color scale limits for the heatmap based on the metric
@@ -254,10 +248,9 @@ def create_heatmap(data, metric, ax):
         vmax=vmax
     )
 
-    # Add a colorbar
     cbar = plt.colorbar(im, ax=ax)
-    cbar.set_ticks([vmin, (vmin + vmax) / 2, vmax])  # Optional: Custom ticks
-    cbar.set_label(metric)  # Optional: Label the colorbar
+    cbar.set_ticks([vmin, (vmin + vmax) / 2, vmax])
+    cbar.set_label(metric)
 
     # Draw the strike zone rectangle
     ax.add_patch(plt.Rectangle(
@@ -273,44 +266,35 @@ def create_heatmap(data, metric, ax):
     ax.set_xlabel('PlateLocSide')
     ax.set_ylabel('PlateLocHeight')
 
-# Spray Chart Function
 def create_spray_chart(data, ax):
     # Define outline points in polar coordinates (angle in degrees, distance in feet)
     outline_points = [
-        (0, 0),      # Home plate at the origin
-        (-45, 90),   # Bottom left
-        (-45, 315),  # Top left
-        (-15, 375),  # Top center left
-        (0, 405),    # Top center
-        (15, 375),   # Top center right
-        (45, 325),   # Top right
-        (45, 90),    # Bottom right
-        (0, 128),    # Bottom center (home plate extension)
-        (-45, 90),   # Back to bottom left to close the shape
-        (0, 0)       # Ensure it returns to home plate
+        (0, 0),
+        (-45, 90),
+        (-45, 315),
+        (-15, 375),
+        (0, 405),
+        (15, 375),
+        (45, 325),
+        (45, 90),
+        (0, 128),
+        (-45, 90),
+        (0, 0)
     ]
 
-
-    # Convert outline points to Cartesian coordinates
     outline_cartesian = [
-        (-distance * np.sin(np.radians(angle)), distance * np.cos(np.radians(angle)))  # Apply 90° counterclockwise rotation
+        (-distance * np.sin(np.radians(angle)), distance * np.cos(np.radians(angle)))
         for angle, distance in outline_points
     ]
 
-    # Extract x and y coordinates for the outline
     outline_x, outline_y = zip(*outline_cartesian)
-
-    # Plot the outline
     ax.plot(outline_x, outline_y, color='red', linewidth=2, label="Field Outline")
 
-    # Plot the Direction and Distance points from the data
     if 'Direction' in data.columns and 'Distance' in data.columns:
-        # Convert Direction and Distance to Cartesian coordinates, including rotation
         data['Direction_rad'] = np.radians(data['Direction'])
-        data['Rotated_X'] = -data['Distance'] * np.sin(data['Direction_rad'])  # Apply 90° counterclockwise rotation
+        data['Rotated_X'] = -data['Distance'] * np.sin(data['Direction_rad'])
         data['Rotated_Y'] = data['Distance'] * np.cos(data['Direction_rad'])
 
-        # Scatter plot the points with Exit Speed as the color
         scatter = ax.scatter(
             data['Rotated_X'], 
             data['Rotated_Y'], 
@@ -321,31 +305,22 @@ def create_spray_chart(data, ax):
             label='Hits'
         )
         
-        # Add a colorbar
         cbar = plt.colorbar(scatter, ax=ax)
         cbar.set_label("Exit Speed")
     
-    # Set plot aesthetics
     ax.set_title("Spray Chart with Outline and Rotated Data Points")
     ax.set_xlabel("X (Feet)")
     ax.set_ylabel("Y (Feet)")
-    ax.set_xlim([-250, 250])  # Adjust as needed
-    ax.set_ylim([0, 450])  # Adjust as needed
+    ax.set_xlim([-250, 250])
+    ax.set_ylim([0, 450])
     ax.set_aspect('equal')
     ax.legend()
 
-
-
-
-# Streamlit Page Navigation
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Select Page", ["Heatmaps", "Spray Chart"])
 
-# Heatmaps Page
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
-
-    # Create subplots for the heatmaps
     fig, axs = plt.subplots(1, 3, figsize=(18, 6))
 
     # Heatmap for Launch Angle
@@ -354,7 +329,8 @@ if page == "Heatmaps":
     else:
         axs[0].set_title("Launch Angle")
         axs[0].axis('off')
-        axs[0].text(0.5, 0.5, "Launch Angle Heatmap\n(Data Not Available)", horizontalalignment='center', verticalalignment='center')
+        axs[0].text(0.5, 0.5, "Launch Angle Heatmap\n(Data Not Available)", 
+                    horizontalalignment='center', verticalalignment='center')
 
     # Heatmap for Exit Velocity
     if 'Exitspeed' in filtered_data.columns and not filtered_data['Exitspeed'].isnull().all():
@@ -362,16 +338,15 @@ if page == "Heatmaps":
     else:
         axs[1].set_title("Exit Velocity")
         axs[1].axis('off')
-        axs[1].text(0.5, 0.5, "Exit Velocity Heatmap\n(Data Not Available)", horizontalalignment='center', verticalalignment='center')
+        axs[1].text(0.5, 0.5, "Exit Velocity Heatmap\n(Data Not Available)", 
+                    horizontalalignment='center', verticalalignment='center')
 
-    # Heatmap for Predicted SLG (if applicable)
-    axs[2].axis('off')  # Placeholder if no third heatmap is required
+    # Third heatmap placeholder
+    axs[2].axis('off')
 
-    # Adjust layout
     plt.tight_layout()
     st.pyplot(fig)
 
-# Spray Chart Page
 elif page == "Spray Chart":
     st.title("Spray Chart")
     spray_data = filtered_data[
@@ -379,7 +354,104 @@ elif page == "Spray Chart":
         filtered_data['Distance'].notnull()
     ]
     
-    # Create Spray Chart
     fig, ax = plt.subplots(figsize=(10, 8))
     create_spray_chart(spray_data, ax)
     st.pyplot(fig)
+
+###################################
+# NEW CODE FOR HITTER METRICS TABLE
+###################################
+
+if not filtered_data.empty:
+    total_events = len(filtered_data)
+
+    # Average EV
+    avg_ev = filtered_data['Exitspeed'].mean() if 'Exitspeed' in filtered_data else np.nan
+
+    # Max EV
+    max_ev = filtered_data['Exitspeed'].max() if 'Exitspeed' in filtered_data else np.nan
+
+    # HARD HIT% (exitspeed > 90)
+    hard_hit_count = (filtered_data['Exitspeed'] > 90).sum()
+    hard_hit_pct = hard_hit_count / total_events if total_events > 0 else np.nan
+
+    # BARREL% (EV>=99 and angle between 25 and 31 inclusive)
+    barrel_mask = (filtered_data['Exitspeed'] >= 99) & (filtered_data['Angle'].between(25,31))
+    barrel_count = barrel_mask.sum()
+    barrel_pct = barrel_count / total_events if total_events > 0 else np.nan
+
+    # 90TH% EV - NA
+    ev_90th = 'NA'
+
+    # zCONTACT - NA
+    zcontact = 'NA'
+
+    # SwStrk% - NA
+    swstrk_pct = 'NA'
+
+    # K-BB% - NA
+    kbb_pct = 'NA'
+
+    # CONTACT% - NA
+    contact_pct = 'NA'
+
+    # zSWING-CHASE% - NA
+    z_swing_chase_pct = 'NA'
+
+    # xWOBA - NA
+    xwoba = 'NA'
+
+    # GB% (angle <0)
+    gb_count = (filtered_data['Angle'] < 0).sum()
+    gb_pct = gb_count / total_events if total_events > 0 else np.nan
+
+    # PULL% (depends on batterside)
+    # Assume single batter side or if multiple, just pick the first unique
+    if 'Batterside' in filtered_data.columns and not filtered_data['Batterside'].isnull().all():
+        batter_sides = filtered_data['Batterside'].dropna().unique()
+        if len(batter_sides) > 0:
+            batter_side = batter_sides[0]
+        else:
+            batter_side = None
+    else:
+        batter_side = None
+
+    if batter_side == 'L':
+        # Pulled = direction > 0
+        pull_count = (filtered_data['Direction'] > 0).sum()
+    elif batter_side == 'R':
+        # Pulled = direction < 0
+        pull_count = (filtered_data['Direction'] < 0).sum()
+    else:
+        # If unknown, set pull_count to NaN
+        pull_count = np.nan
+
+    pull_pct = pull_count / total_events if total_events > 0 and not np.isnan(pull_count) else np.nan
+
+    # POP FLY% angle>50 and EV<85
+    pop_fly_count = ((filtered_data['Angle'] > 50) & (filtered_data['Exitspeed'] < 85)).sum()
+    pop_fly_pct = pop_fly_count / total_events if total_events > 0 else np.nan
+
+    # Create a DataFrame for the metrics
+    metrics_df = pd.DataFrame({
+        'Average EV': [avg_ev],
+        'Max EV': [max_ev],
+        'Hard Hit%': [hard_hit_pct],
+        'Barrel%': [barrel_pct],
+        '90TH% EV': [ev_90th],
+        'zCONTACT': [zcontact],
+        'SwStrk%': [swstrk_pct],
+        'K-BB%': [kbb_pct],
+        'CONTACT%': [contact_pct],
+        'zSWING-CHASE%': [z_swing_chase_pct],
+        'xWOBA': [xwoba],
+        'GB%': [gb_pct],
+        'PULL%': [pull_pct],
+        'POP FLY%': [pop_fly_pct]
+    })
+
+    st.header("Hitter Metrics")
+    st.table(metrics_df)
+else:
+    st.header("Hitter Metrics")
+    st.write("No data available for the selected filters.")
