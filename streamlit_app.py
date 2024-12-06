@@ -113,12 +113,21 @@ st.sidebar.header("Filter Options")
 # First filter: Batter
 batters = df['Batter'].dropna().unique()
 batters = sorted(batters)
-default_batter = batters[0] if batters else None
+batters = ["All Hitters"] + batters  # Add "All Hitters" option at the front
+default_batter = "All Hitters" if batters else None
+
 selected_batters = st.sidebar.multiselect(
     "Select Batter(s)",
     batters,
     default=[default_batter] if default_batter else []
 )
+
+# If "All Hitters" is selected, we consider all batters
+if "All Hitters" in selected_batters:
+    batter_filter = True  # No restriction on batters
+else:
+    batter_filter = df['Batter'].isin(selected_batters)
+
 
 # Add an "All" option to the list of pitcher hands
 pitcher_hands = ['All', 'R', 'L']
