@@ -340,88 +340,73 @@ elif page == "Hitter Metrics":
     st.title("Hitter Metrics")
 
     if not filtered_data.empty:
-        total_events = len(filtered_data)
+        # Group by Batter to display a row per batter
+        grouped = filtered_data.groupby('Batter')
 
-        # Average EV
-        avg_ev = filtered_data['Exitspeed'].mean() if 'Exitspeed' in filtered_data else np.nan
+        rows = []
+        for batter, group_data in grouped:
+            total_events = len(group_data)
 
-        # Max EV
-        max_ev = filtered_data['Exitspeed'].max() if 'Exitspeed' in filtered_data else np.nan
+            avg_ev = group_data['Exitspeed'].mean() if 'Exitspeed' in group_data else np.nan
+            max_ev = group_data['Exitspeed'].max() if 'Exitspeed' in group_data else np.nan
+            hard_hit_count = (group_data['Exitspeed'] > 90).sum()
+            hard_hit_pct = hard_hit_count / total_events if total_events > 0 else np.nan
 
-        # HARD HIT% (exitspeed > 90)
-        hard_hit_count = (filtered_data['Exitspeed'] > 90).sum()
-        hard_hit_pct = hard_hit_count / total_events if total_events > 0 else np.nan
+            barrel_mask = (group_data['Exitspeed'] >= 99) & (group_data['Angle'].between(25,31))
+            barrel_count = barrel_mask.sum()
+            barrel_pct = barrel_count / total_events if total_events > 0 else np.nan
 
-        # BARREL% (EV>=99 and angle between 25 and 31 inclusive)
-        barrel_mask = (filtered_data['Exitspeed'] >= 99) & (filtered_data['Angle'].between(25,31))
-        barrel_count = barrel_mask.sum()
-        barrel_pct = barrel_count / total_events if total_events > 0 else np.nan
+            ev_90th = 'NA'
+            zcontact = 'NA'
+            swstrk_pct = 'NA'
+            kbb_pct = 'NA'
+            contact_pct = 'NA'
+            z_swing_chase_pct = 'NA'
+            xwoba = 'NA'
 
-        # 90TH% EV - NA
-        ev_90th = 'NA'
+            gb_count = (group_data['Angle'] < 0).sum()
+            gb_pct = gb_count / total_events if total_events > 0 else np.nan
 
-        # zCONTACT - NA
-        zcontact = 'NA'
-
-        # SwStrk% - NA
-        swstrk_pct = 'NA'
-
-        # K-BB% - NA
-        kbb_pct = 'NA'
-
-        # CONTACT% - NA
-        contact_pct = 'NA'
-
-        # zSWING-CHASE% - NA
-        z_swing_chase_pct = 'NA'
-
-        # xWOBA - NA
-        xwoba = 'NA'
-
-        # GB% (angle <0)
-        gb_count = (filtered_data['Angle'] < 0).sum()
-        gb_pct = gb_count / total_events if total_events > 0 else np.nan
-
-        # PULL% (depends on batterside)
-        if 'Batterside' in filtered_data.columns and not filtered_data['Batterside'].isnull().all():
-            batter_sides = filtered_data['Batterside'].dropna().unique()
-            if len(batter_sides) > 0:
-                batter_side = batter_sides[0]
+            if 'Batterside' in group_data.columns and not group_data['Batterside'].isnull().all():
+                batter_sides = group_data['Batterside'].dropna().unique()
+                if len(batter_sides) > 0:
+                    batter_side = batter_sides[0]
+                else:
+                    batter_side = None
             else:
                 batter_side = None
-        else:
-            batter_side = None
 
-        if batter_side == 'L':
-            pull_count = (filtered_data['Direction'] > 0).sum()
-        elif batter_side == 'R':
-            pull_count = (filtered_data['Direction'] < 0).sum()
-        else:
-            pull_count = np.nan
+            if batter_side == 'L':
+                pull_count = (group_data['Direction'] > 0).sum()
+            elif batter_side == 'R':
+                pull_count = (group_data['Direction'] < 0).sum()
+            else:
+                pull_count = np.nan
 
-        pull_pct = pull_count / total_events if total_events > 0 and not np.isnan(pull_count) else np.nan
+            pull_pct = pull_count / total_events if total_events > 0 and not np.isnan(pull_count) else np.nan
 
-        # POP FLY% angle>50 and EV<85
-        pop_fly_count = ((filtered_data['Angle'] > 50) & (filtered_data['Exitspeed'] < 85)).sum()
-        pop_fly_pct = pop_fly_count / total_events if total_events > 0 else np.nan
+            pop_fly_count = ((group_data['Angle'] > 50) & (group_data['Exitspeed'] < 85)).sum()
+            pop_fly_pct = pop_fly_count / total_events if total_events > 0 else np.nan
 
-        metrics_df = pd.DataFrame({
-            'Average EV': [avg_ev],
-            'Max EV': [max_ev],
-            'Hard Hit%': [hard_hit_pct],
-            'Barrel%': [barrel_pct],
-            '90TH% EV': [ev_90th],
-            'zCONTACT': [zcontact],
-            'SwStrk%': [swstrk_pct],
-            'K-BB%': [kbb_pct],
-            'CONTACT%': [contact_pct],
-            'zSWING-CHASE%': [z_swing_chase_pct],
-            'xWOBA': [xwoba],
-            'GB%': [gb_pct],
-            'PULL%': [pull_pct],
-            'POP FLY%': [pop_fly_pct]
-        })
+            rows.append({
+                'Batter': batter,
+                'Average EV': avg_ev,
+                'Max EV': max_ev,
+                'Hard Hit%': hard_hit_pct,
+                'Barrel%': barrel_pct,
+                '90TH% EV': ev_90th,
+                'zCONTACT': zcontact,
+                'SwStrk%': swstrk_pct,
+                'K-BB%': kbb_pct,
+                'CONTACT%': contact_pct,
+                'zSWING-CHASE%': z_swing_chase_pct,
+                'xWOBA': xwoba,
+                'GB%': gb_pct,
+                'PULL%': pull_pct,
+                'POP FLY%': pop_fly_pct
+            })
 
+        metrics_df = pd.DataFrame(rows)
         st.table(metrics_df)
     else:
         st.write("No data available for the selected filters.")
