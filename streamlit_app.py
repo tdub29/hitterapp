@@ -113,13 +113,13 @@ st.sidebar.header("Filter Options")
 # First filter: Batter
 batters = df['Batter'].dropna().unique()
 batters = sorted(batters)
-batters = ["All Hitters"] + batters  # Add "All Hitters" option at the front
-default_batter = "All Hitters" if batters else None
+batters = ["All Hitters"] + list(batters)  # Add "All Hitters" option at the front
+default_batter = ["All Hitters"] if "All Hitters" in batters else [batters[0]] if batters else []
 
 selected_batters = st.sidebar.multiselect(
     "Select Batter(s)",
     batters,
-    default=[default_batter] if default_batter else []
+    default=default_batter
 )
 
 # If "All Hitters" is selected, we consider all batters
@@ -127,6 +127,7 @@ if "All Hitters" in selected_batters:
     batter_filter = True  # No restriction on batters
 else:
     batter_filter = df['Batter'].isin(selected_batters)
+
 
 
 # Add an "All" option to the list of pitcher hands
@@ -175,8 +176,9 @@ count_option_to_column = {
     'Pitcher-Friendly': 'Pitcherfriendly'
 }
 
+# Apply filters using batter_filter
 filtered_data = df[
-    (df['Batter'].isin(selected_batters)) &
+    (batter_filter) &
     (df['Pitchcategory'].isin(selected_categories)) &
     (df['Autopitchtype'].isin(selected_pitch_types)) &
     (df['Exitspeed'] > 0) &
