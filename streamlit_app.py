@@ -360,6 +360,7 @@ elif page == "Hitter Metrics":
 
             avg_ev = group_data['Exitspeed'].mean() if 'Exitspeed' in group_data else np.nan
             max_ev = group_data['Exitspeed'].max() if 'Exitspeed' in group_data else np.nan
+            avg_launch_angle = group_data['Angle'].mean() if 'Angle' in group_data else np.nan
             hard_hit_count = (group_data['Exitspeed'] > 90).sum()
             hard_hit_pct = hard_hit_count / total_events if total_events > 0 else np.nan
 
@@ -401,8 +402,9 @@ elif page == "Hitter Metrics":
 
             rows.append({
                 'Batter': batter,
-                'Average EV': avg_ev,
+                'Avg EV': avg_ev,
                 'Max EV': max_ev,
+                'Avg LA': avg_launch_angle,
                 'Hard Hit%': hard_hit_pct,
                 'Barrel%': barrel_pct,
                 '90TH% EV': ev_90th,
