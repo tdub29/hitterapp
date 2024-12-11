@@ -448,14 +448,30 @@ elif page == "Hitter Metrics":
 
             avg_xSLG = group_data['xSLG'].mean() if 'xSLG' in group_data else np.nan
 
+            # Format the numeric values:
+            def fmt_num(val, decimals=2):
+                if pd.isna(val):
+                    return np.nan
+                return f"{val:.{decimals}f}"
+
+            def fmt_pct(val):
+                if pd.isna(val):
+                    return np.nan
+                return f"{val*100:.2f}%"
+
+            def fmt_xslg(val):
+                if pd.isna(val):
+                    return np.nan
+                return f"{val:.3f}"
+
             rows.append({
                 'Batter': batter,
-                'Avg EV': avg_ev,
-                'Max EV': max_ev,
-                'Avg LA': avg_launch_angle,
-                'xSLG': avg_xSLG,
-                'Hard Hit%': hard_hit_pct,
-                'Barrel%': barrel_pct,
+                'Avg EV': fmt_num(avg_ev),
+                'Max EV': fmt_num(max_ev),
+                'Avg LA': fmt_num(avg_launch_angle),
+                'xSLG': fmt_xslg(avg_xSLG),
+                'Hard Hit%': fmt_pct(hard_hit_pct),
+                'Barrel%': fmt_pct(barrel_pct),
                 '90TH% EV': ev_90th,
                 'zCONTACT': zcontact,
                 'SwStrk%': swstrk_pct,
@@ -463,12 +479,13 @@ elif page == "Hitter Metrics":
                 'CONTACT%': contact_pct,
                 'zSWING-CHASE%': z_swing_chase_pct,
                 'xWOBA': xwoba,
-                'GB%': gb_pct,
-                'PULL%': pull_pct,
-                'POP FLY%': pop_fly_pct
+                'GB%': fmt_pct(gb_pct),
+                'PULL%': fmt_pct(pull_pct),
+                'POP FLY%': fmt_pct(pop_fly_pct)
             })
 
         metrics_df = pd.DataFrame(rows)
         st.table(metrics_df)
     else:
         st.write("No data available for the selected filters.")
+
