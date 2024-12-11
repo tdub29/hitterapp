@@ -19,6 +19,10 @@ from matplotlib.patches import Arc
 import xgboost as xgb
 from statsmodels.nonparametric.kernel_regression import KernelReg
 
+# Load the pre-trained xSLG model (assuming xSLG_model.json is in the repo)
+best_model = xgb.XGBRegressor()
+best_model.load_model('xSLG_model.json')
+
 # Define custom color palette
 kde_min = '#236abe'
 kde_mid = '#fefefe'
@@ -189,6 +193,13 @@ filtered_data = df[
 if selected_pitcher_hand != 'All':
     filtered_data = filtered_data[(filtered_data['Pitcherhand'] == selected_pitcher_hand)]
 
+# Create 'interaction' for xSLG predictions
+filtered_data['interaction'] = filtered_data['Exitspeed'] * filtered_data['Angle']
+
+# Predict xSLG
+X_pred = filtered_data[['Exitspeed', 'Angle', 'interaction']]
+filtered_data['xSLG'] = best_model.predict(X_pred)
+
 def create_heatmap(data, metric, ax):
     if data.empty or metric not in data.columns:
         ax.set_title(f"No data available for {metric}.")
@@ -228,6 +239,9 @@ def create_heatmap(data, metric, ax):
         vmin, vmax = 60, 100
     elif metric == 'Angle':
         vmin, vmax = -45, 45
+    elif metric == 'xSLG':
+        # Set some reasonable color range for xSLG
+        vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
     else:
         vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
 
@@ -243,7 +257,6 @@ def create_heatmap(data, metric, ax):
     )
 
     cbar = plt.colorbar(im, ax=ax)
-    cbar.set_ticks([vmin, (vmin + vmax) / 2, vmax])
     cbar.set_label(metric)
 
     ax.add_patch(plt.Rectangle(
@@ -400,11 +413,14 @@ elif page == "Hitter Metrics":
             pop_fly_count = ((group_data['Angle'] > 50) & (group_data['Exitspeed'] < 85)).sum()
             pop_fly_pct = pop_fly_count / total_events if total_events > 0 else np.nan
 
+            avg_xSLG = group_data['xSLG'].mean() if 'xSLG' in group_data else np.nan
+
             rows.append({
                 'Batter': batter,
                 'Avg EV': avg_ev,
                 'Max EV': max_ev,
                 'Avg LA': avg_launch_angle,
+                'xSLG': avg_xSLG,
                 'Hard Hit%': hard_hit_pct,
                 'Barrel%': barrel_pct,
                 '90TH% EV': ev_90th,
