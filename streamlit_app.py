@@ -251,13 +251,15 @@ def create_heatmap(data, metric, ax):
         return
 
     if metric == 'Exitspeed':
-        vmin, vmax = 60, 100
+    vmin, vmax = 60, 100
     elif metric == 'Angle':
         vmin, vmax = -45, 45
     elif metric == 'xSLG':
-        vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
+        # Set fixed color range for xSLG
+        vmin, vmax = 0.25, 0.65
     else:
         vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
+
 
     extent = [x_min, x_max, y_min, y_max]
     im = ax.imshow(
