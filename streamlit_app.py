@@ -19,9 +19,12 @@ from matplotlib.patches import Arc
 import xgboost as xgb
 from statsmodels.nonparametric.kernel_regression import KernelReg
 
-# Load the pre-trained xSLG model (assuming xSLG_model.json is in the repo)
+booster = xgb.Booster()
+booster.load_model('xSLG_model.json')
+
 best_model = xgb.XGBRegressor()
-best_model.load_model('xSLG_model.json')
+best_model._Booster = booster  # Assign the booster to the regressor
+
 
 # Define custom color palette
 kde_min = '#236abe'
