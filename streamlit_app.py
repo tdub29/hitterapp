@@ -345,6 +345,7 @@ if page == "Heatmaps":
     st.title("Hitter Heatmaps")
     fig, axs = plt.subplots(1, 3, figsize=(18, 6))
 
+    # Angle Heatmap
     if 'Angle' in filtered_data.columns and not filtered_data['Angle'].isnull().all():
         create_heatmap(filtered_data, 'Angle', axs[0])
     else:
@@ -353,6 +354,7 @@ if page == "Heatmaps":
         axs[0].text(0.5, 0.5, "Launch Angle Heatmap\n(Data Not Available)",
                     horizontalalignment='center', verticalalignment='center')
 
+    # Exit Speed Heatmap
     if 'Exitspeed' in filtered_data.columns and not filtered_data['Exitspeed'].isnull().all():
         create_heatmap(filtered_data, 'Exitspeed', axs[1])
     else:
@@ -361,7 +363,14 @@ if page == "Heatmaps":
         axs[1].text(0.5, 0.5, "Exit Velocity Heatmap\n(Data Not Available)",
                     horizontalalignment='center', verticalalignment='center')
 
-    axs[2].axis('off')
+    # xSLG Heatmap
+    if 'xSLG' in filtered_data.columns and not filtered_data['xSLG'].isnull().all():
+        create_heatmap(filtered_data, 'xSLG', axs[2])
+    else:
+        axs[2].set_title("xSLG")
+        axs[2].axis('off')
+        axs[2].text(0.5, 0.5, "xSLG Heatmap\n(Data Not Available)",
+                    horizontalalignment='center', verticalalignment='center')
 
     plt.tight_layout()
     st.pyplot(fig)
