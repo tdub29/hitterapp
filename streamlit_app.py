@@ -324,7 +324,9 @@ def create_spray_chart(data, ax):
             cmap='coolwarm',
             s=50,
             edgecolor='k',
-            label='Hits'
+            label='Hits',
+            vmin=60,  # Set minimum value for color bar
+            vmax=100  # Set maximum value for color bar
         )
 
         cbar = plt.colorbar(scatter, ax=ax)
