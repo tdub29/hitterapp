@@ -137,6 +137,24 @@ if "All Hitters" in selected_batters:
 else:
     batter_filter = df['Batter'].isin(selected_batters)
 
+# ADD PITCHER FILTER HERE
+pitchers = df['Pitcher'].dropna().unique()
+pitchers = sorted(pitchers)
+pitchers = ["All Pitchers"] + list(pitchers)  # Add "All Pitchers" option
+default_pitcher = ["All Pitchers"] if "All Pitchers" in pitchers else [pitchers[0]] if pitchers else []
+
+selected_pitchers = st.sidebar.multiselect(
+    "Select Pitcher(s)",
+    pitchers,
+    default=default_pitcher
+)
+
+# If "All Pitchers" is selected, consider all pitchers
+if "All Pitchers" in selected_pitchers:
+    pitcher_filter = True
+else:
+    pitcher_filter = df['Pitcher'].isin(selected_pitchers)
+
 
 
 # Add an "All" option to the list of pitcher hands
@@ -188,6 +206,7 @@ count_option_to_column = {
 # Apply filters using batter_filter
 filtered_data = df[
     (batter_filter) &
+    (pitcher_filter) &
     (df['Pitchcategory'].isin(selected_categories)) &
     (df['Autopitchtype'].isin(selected_pitch_types)) &
     (df['Exitspeed'] > 0) &
@@ -337,7 +356,7 @@ def create_spray_chart(data, ax):
         cbar = plt.colorbar(scatter, ax=ax)
         cbar.set_label("Exit Speed")
 
-    ax.set_title("Spray Chart with Outline and Rotated Data Points")
+    ax.set_title("Spray Chart")
     ax.set_xlabel("X (Feet)")
     ax.set_ylabel("Y (Feet)")
     ax.set_xlim([-250, 250])
