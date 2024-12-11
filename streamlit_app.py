@@ -244,12 +244,17 @@ def create_heatmap(data, metric, ax):
 
     heatmap_data = np.ma.masked_invalid(heatmap_data)
 
+    # Handle xSLG specifically if no valid data is found
+    if metric == 'xSLG' and np.isnan(heatmap_data).all():
+        ax.set_title("No data available for xSLG.")
+        ax.axis('off')
+        return
+
     if metric == 'Exitspeed':
         vmin, vmax = 60, 100
     elif metric == 'Angle':
         vmin, vmax = -45, 45
     elif metric == 'xSLG':
-        # Set some reasonable color range for xSLG
         vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
     else:
         vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
@@ -280,6 +285,7 @@ def create_heatmap(data, metric, ax):
     ax.set_title(metric)
     ax.set_xlabel('PlateLocSide')
     ax.set_ylabel('PlateLocHeight')
+
 
 def create_spray_chart(data, ax):
     outline_points = [
