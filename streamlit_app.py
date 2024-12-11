@@ -202,7 +202,11 @@ if selected_pitcher_hand != 'All':
 filtered_data['interaction'] = filtered_data['Exitspeed'] * filtered_data['Angle']
 
 # Predict xSLG
-X_pred = filtered_data[['Exitspeed', 'Angle', 'interaction']]
+# Create the prediction DataFrame with correct column names
+X_pred = filtered_data[['Exitspeed', 'Angle', 'interaction']].copy()
+X_pred.rename(columns={'Exitspeed':'launch_speed', 'Angle':'launch_angle'}, inplace=True)
+
+# Now predict using the corrected feature names
 filtered_data['xSLG'] = best_model.predict(X_pred)
 
 def create_heatmap(data, metric, ax):
