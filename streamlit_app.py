@@ -244,7 +244,7 @@ def create_heatmap(data, metric, ax):
 
     heatmap_data = np.ma.masked_invalid(heatmap_data)
 
-    # Handle xSLG specifically if no valid data is found
+    # Handle case where no valid data for xSLG exists
     if metric == 'xSLG' and np.isnan(heatmap_data).all():
         ax.set_title("No data available for xSLG.")
         ax.axis('off')
@@ -255,11 +255,10 @@ def create_heatmap(data, metric, ax):
     elif metric == 'Angle':
         vmin, vmax = -45, 45
     elif metric == 'xSLG':
-        # Set fixed color range for xSLG
+        # Use a fixed range for xSLG
         vmin, vmax = 0.25, 0.65
     else:
         vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
-
 
     extent = [x_min, x_max, y_min, y_max]
     im = ax.imshow(
@@ -287,6 +286,7 @@ def create_heatmap(data, metric, ax):
     ax.set_title(metric)
     ax.set_xlabel('PlateLocSide')
     ax.set_ylabel('PlateLocHeight')
+
 
 
 def create_spray_chart(data, ax):
