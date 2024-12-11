@@ -137,23 +137,7 @@ if "All Hitters" in selected_batters:
 else:
     batter_filter = df['Batter'].isin(selected_batters)
 
-# ADD PITCHER FILTER HERE
-pitchers = df['Pitcher'].dropna().unique()
-pitchers = sorted(pitchers)
-pitchers = ["All Pitchers"] + list(pitchers)  # Add "All Pitchers" option
-default_pitcher = ["All Pitchers"] if "All Pitchers" in pitchers else [pitchers[0]] if pitchers else []
 
-selected_pitchers = st.sidebar.multiselect(
-    "Select Pitcher(s)",
-    pitchers,
-    default=default_pitcher
-)
-
-# If "All Pitchers" is selected, consider all pitchers
-if "All Pitchers" in selected_pitchers:
-    pitcher_filter = True
-else:
-    pitcher_filter = df['Pitcher'].isin(selected_pitchers)
 
 
 
@@ -202,6 +186,21 @@ count_option_to_column = {
     'Hitter-Friendly': 'Hitterfriendly',
     'Pitcher-Friendly': 'Pitcherfriendly'
 }
+
+# ADD PITCHER FILTER HERE
+pitchers = df['Pitcher'].dropna().unique()
+pitchers = sorted(pitchers)
+
+# By default, select all pitchers
+selected_pitchers = st.sidebar.multiselect(
+    "Select Pitcher(s)",
+    pitchers,
+    default=pitchers  # all selected by default
+)
+
+# If no pitchers are selected, filtered_data would be empty, so you may want to handle that case.
+# For now, if user deselects all, it means no pitcher selected (filtered_data will reflect that).
+pitcher_filter = df['Pitcher'].isin(selected_pitchers)
 
 # Apply filters using batter_filter
 filtered_data = df[
