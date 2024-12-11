@@ -283,7 +283,7 @@ def create_heatmap(data, metric, ax):
         lw=2
     ))
 
-    ax.set_title(metric)
+    ax.set_title(metric, fontsize=20)
     ax.set_xlabel('PlateLocSide')
     ax.set_ylabel('PlateLocHeight')
 
