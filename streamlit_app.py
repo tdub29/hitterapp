@@ -5,8 +5,12 @@ import streamlit as st
 
 # Install scikit-learn if it's not already installed
 # Upgrade to compatible versions of scikit-learn and xgboost
-subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "scikit-learn==1.2.2", "xgboost==1.7.5"])
-
+# Install scikit-learn if it's not already installed
+try:
+    import sklearn
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "scikit-learn"])
+    import sklearn
 
 import sklearn
 import pandas as pd
