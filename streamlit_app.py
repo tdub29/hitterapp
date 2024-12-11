@@ -251,7 +251,7 @@ def create_heatmap(data, metric, ax):
         return
 
     if metric == 'Exitspeed':
-    vmin, vmax = 60, 100
+        vmin, vmax = 60, 100
     elif metric == 'Angle':
         vmin, vmax = -45, 45
     elif metric == 'xSLG':
