@@ -283,6 +283,11 @@ def create_heatmap(data, metric, ax):
         lw=2
     ))
 
+     # Add plate polygon
+    plate_vertices = [(-0.83, 0.1), (0.83, 0.1), (0.65, 0.25), (0, 0.5), (-0.65, 0.25)]
+    plate = plt.Polygon(plate_vertices, closed=True, linewidth=1, edgecolor='k', facecolor='none')
+    ax.add_patch(plate)
+
     ax.set_title(metric, fontsize=20)
     ax.set_xlabel('PlateLocSide')
     ax.set_ylabel('PlateLocHeight')
