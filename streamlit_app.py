@@ -188,7 +188,7 @@ count_option_to_column = {
 }
 
 # ADD PITCHER FILTER HERE
-pitchers = df['Pitcher'].dropna().unique()
+pitchers = df['Pitcher'].unique()
 pitchers = sorted(pitchers)
 
 # By default, select all pitchers
