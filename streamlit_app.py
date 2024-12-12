@@ -188,6 +188,7 @@ count_option_to_column = {
 }
 
 # ADD PITCHER FILTER HERE
+df['Pitcher'].fillna('Machine', inplace=True)
 pitchers = df['Pitcher'].unique()
 pitchers = sorted(pitchers)
 
