@@ -414,7 +414,7 @@ def create_spray_chart(data, ax):
     ax.legend()
 
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" ,"Spray Chart", "Hitter Metrics"])
+page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" ,"Spray Chart", "Hitter Metrics", "Raw Data"])
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
@@ -465,6 +465,15 @@ elif page == "Pitch Locations by Playresult":
     st.title("Pitch Locations by Playresult")
     plot_pitch_locations_by_playresult(filtered_data)
 
+elif page == "Raw Data":
+    st.title("Raw Data Display")
+
+  
+    st.write("### Filtered Dataset (First 100 rows)")
+    if filtered_data.empty:
+        st.warning("No filtered data available. Adjust your filters to see results.")
+    else:
+        st.dataframe(filtered_data.head(1000))  # Display the first 100 rows of the filtered dataset
 
 elif page == "Hitter Metrics":
     st.title("Hitter Metrics")
