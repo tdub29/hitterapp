@@ -427,8 +427,7 @@ def plot_pitch_locations_by_playresult(data):
     cbar = fig.colorbar(sm, cax=cbar_ax, orientation='horizontal')
     cbar.set_label('xSLG (0 - 2)', fontsize=12, color='black')
     cbar.ax.tick_params(labelcolor='darkblue')
-    plt.subplots_adjust(bottom=1, hspace=1)  # Added hspace for more vertical spacing
-    plt.tight_layout()
+    plt.subplots_adjust(bottom=.3, hspace=.15)  # Added hspace for more vertical spacing
     st.pyplot(fig)
 
 
