@@ -323,7 +323,7 @@ def create_heatmap(data, metric, ax):
     ax.set_xlabel('PlateLocSide')
     ax.set_ylabel('PlateLocHeight')
 
-def plot_pitch_locations_by_playresult(data):
+def plot_pitch_locations_by_playresult(data): 
     if data.empty:
         st.warning("No data available for the selected filters to plot pitch locations.")
         return
@@ -348,22 +348,21 @@ def plot_pitch_locations_by_playresult(data):
             palette=palette,
             s=100,
             edgecolor='black',
-            ax=axes[i],
-            legend='full'
+            ax=axes[i]
         )
         
-        # Add legend manually for the first plot
+        # Add legend manually to ensure visibility
         if i == 0:
-            handles, labels = scatter.get_legend_handles_labels()
             legend = axes[i].legend(
-                handles=handles,
-                labels=labels,
                 title='Event',
                 bbox_to_anchor=(1.05, 1),
                 loc='upper left',
                 borderaxespad=0.
             )
-            legend.get_title().set_fontsize('12')
+            # Set legend title and text to dark blue
+            legend.get_title().set_color('darkblue')
+            for text in legend.get_texts():
+                text.set_color('darkblue')
         
         # Add strike zone rectangle
         axes[i].add_patch(Rectangle(
@@ -387,6 +386,7 @@ def plot_pitch_locations_by_playresult(data):
 
     plt.tight_layout()
     st.pyplot(fig)
+
 
 
 
