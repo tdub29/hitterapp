@@ -111,11 +111,11 @@ df['Exitspeed'] = pd.to_numeric(df['Exitspeed'], errors='coerce')
 df['Angle'] = pd.to_numeric(df['Angle'], errors='coerce')
 
 # Filter out invalid 'Exitspeed' and 'Angle' values if necessary
-df = df[df['Exitspeed'].notnull()]
-df = df[df['Angle'].notnull()]
+# df = df[df['Exitspeed'].notnull()]
+# df = df[df['Angle'].notnull()]
 
 # Create a mask where 'Exitspeed' and 'Angle' are not NaN
-mask = (df['Exitspeed'].notnull()) & (df['Angle'].notnull())
+# mask = (df['Exitspeed'].notnull()) & (df['Angle'].notnull())
 
 # Streamlit Sidebar Filters
 st.sidebar.header("Filter Options")
