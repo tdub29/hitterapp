@@ -225,7 +225,7 @@ df['Zone'] = np.where(
 df['Atbatid'] = (
     df['Date'].astype(str).fillna('') + '_' +
     df['Pitcher'].fillna('').astype(str) + '_' +
-    df['Paoffinning'].fillna('').astype(str) + '_' +
+    df['Paofinning'].fillna('').astype(str) + '_' +
     df['Inning'].fillna('').astype(str)
 )
 
