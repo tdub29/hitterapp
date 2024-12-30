@@ -611,21 +611,21 @@ def display_hitter_metrics(all_pitches):
 
         # Plate Discipline Metrics
         o_swing = ((group_data['Zone'] == 'Out') & (group_data['Swing'] == 'Swing')).sum()
-        z_swing = ((group_data['Zone'] == 'In') & (group_data['Swing'] == 'Swing')).sum()
+        z_swing = ((group_data['Zone'] == 'InZone') & (group_data['Swing'] == 'Swing')).sum()
         total_swings = (group_data['Swing'] == 'Swing').sum()
         total_pitches = len(group_data)
 
         o_contact = ((group_data['Zone'] == 'Out') & (group_data['Swing'] == 'Swing') & (group_data['Contact'] == 'Yes')).sum()
-        z_contact = ((group_data['Zone'] == 'In') & (group_data['Swing'] == 'Swing') & (group_data['Contact'] == 'Yes')).sum()
+        z_contact = ((group_data['Zone'] == 'InZone') & (group_data['Swing'] == 'Swing') & (group_data['Contact'] == 'Yes')).sum()
         total_contact = (group_data['Contact'] == 'Yes').sum()
 
-        zone_pitches = (group_data['Zone'] == 'In').sum()
+        zone_pitches = (group_data['Zone'] == 'InZone').sum()
         first_strike = ((group_data['Pitchcall'] == 'Strike') & (group_data['Swing'] == 'Take')).sum()
         swinging_strike = ((group_data['Swing'] == 'Swing') & (group_data['Contact'] == 'No')).sum()
 
         # Avoid division by zero with np.maximum
         o_swing_pct = o_swing / np.maximum((group_data['Zone'] == 'Out').sum(), 1)
-        z_swing_pct = z_swing / np.maximum((group_data['Zone'] == 'In').sum(), 1)
+        z_swing_pct = z_swing / np.maximum((group_data['Zone'] == 'InZone').sum(), 1)
         swing_pct = total_swings / np.maximum(total_pitches, 1)
         o_contact_pct = o_contact / np.maximum(o_swing, 1)
         z_contact_pct = z_contact / np.maximum(z_swing, 1)
