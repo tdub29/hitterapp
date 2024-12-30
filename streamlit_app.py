@@ -424,10 +424,10 @@ def plot_pitch_locations_by_playresult(data):
     sm.set_array([])  # Required for ScalarMappable
     
     cbar_ax = fig.add_axes([0.3, 0.07, 0.4, 0.02])  # Define position for colorbar
-    cbar = fig.colorbar(sm, cax=cbar_ax, orientation='horizontal')
-    cbar.set_label('xSLG (0 - 2)', fontsize=12, color='black')
+    cbar = fig.colorbar(sm, cax=cbar_ax, orientation='vertical')
+    cbar.set_label('xSLG (0 - 2)', fontsize=12, color='white')
     cbar.ax.tick_params(labelcolor='darkblue')
-    plt.subplots_adjust(bottom=.3, hspace=.15)  # Added hspace for more vertical spacing
+    plt.subplots_adjust(hspace=.15)  # Added hspace for more vertical spacing
     st.pyplot(fig)
 
 
