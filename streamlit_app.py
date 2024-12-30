@@ -348,12 +348,22 @@ def plot_pitch_locations_by_playresult(data):
             palette=palette,
             s=100,
             edgecolor='black',
-            ax=axes[i]
+            ax=axes[i],
+            legend='full'
         )
         
-        # Add legend manually to avoid suppression
+        # Add legend manually for the first plot
         if i == 0:
-            scatter.legend_.set_title("Event")
+            handles, labels = scatter.get_legend_handles_labels()
+            legend = axes[i].legend(
+                handles=handles,
+                labels=labels,
+                title='Event',
+                bbox_to_anchor=(1.05, 1),
+                loc='upper left',
+                borderaxespad=0.
+            )
+            legend.get_title().set_fontsize('12')
         
         # Add strike zone rectangle
         axes[i].add_patch(Rectangle(
@@ -377,7 +387,6 @@ def plot_pitch_locations_by_playresult(data):
 
     plt.tight_layout()
     st.pyplot(fig)
-
 
 
 
