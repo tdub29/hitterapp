@@ -232,6 +232,13 @@ df['Atbatid'] = (
 # Create 'Contact' column based on Exitspeed
 df['Contact'] = np.where(df['Exitspeed'] > 0, 'Yes', 'No')
 
+# Ensure Balls and Strikes are numeric
+df['Balls'] = pd.to_numeric(df['Balls'], errors='coerce').fillna(0).astype(int)
+df['Strikes'] = pd.to_numeric(df['Strikes'], errors='coerce').fillna(0).astype(int)
+
+# Create 'Count' column as a string combining Balls and Strikes
+df['Count'] = df['Balls'].astype(str) + '-' + df['Strikes'].astype(str)
+
 
 # Map Plate Zones based on PlatelocSide and PlatelocHeight
 def map_plate_zone(row):
