@@ -521,7 +521,7 @@ def plot_pitch_locations_by_playresult(data):
     cbar.ax.tick_params(labelcolor='white')
     
     # Adjust spacing between rows and columns
-    #plt.subplots_adjust(hspace=0.4)  # More space vertically and horizontally
+    plt.subplots_adjust(hspace=0.4)  # More space vertically and horizontally
     
     st.pyplot(fig)
 
