@@ -209,6 +209,27 @@ df['Swing'] = np.where(
     'Take'    # Otherwise, label as Take
 )
 
+# Map Plate Zones based on PlatelocSide and PlatelocHeight
+def map_plate_zone(row):
+    side = row['Platelocside']
+    height = row['Platelocheight']
+
+    # Heart Zone
+    if -6.7 <= side <= 6.7 and 22 <= height <= 38:
+        return 'Heart'
+    # Shadow Zone
+    elif -13.3 <= side <= 13.3 and 14 <= height <= 46:
+        return 'Shadow'
+    # Chase Zone
+    elif -20 <= side <= 20 and 6 <= height <= 52:
+        return 'Chase'
+    # Waste Zone
+    else:
+        return 'Waste'
+
+# Apply the mapping function to the dataframe
+df['PlateZone'] = df.apply(map_plate_zone, axis=1)
+
 
 
 
@@ -385,10 +406,19 @@ def plot_pitch_locations_by_playresult(data):
     sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=norm)
     sm.set_array([])  # Required for colorbar
 
+    # Zone Definitions
+    zone_definitions = {
+        'Heart': {'x_range': (-0.83, 0.83), 'y_range': (1.5, 3.6), 'color': '#7CFC00', 'alpha': 0.3},
+        'Shadow': {'x_range': (-1.5, 1.5), 'y_range': (1.0, 4.0), 'color': '#FFD700', 'alpha': 0.2},
+        'Chase': {'x_range': (-2.0, 2.0), 'y_range': (0.5, 4.5), 'color': '#FFA07A', 'alpha': 0.15},
+        'Waste': {'x_range': (-2.5, 2.5), 'y_range': (0.0, 5.0), 'color': '#FF6347', 'alpha': 0.1}
+    }
+
     # Loop through Swing/Take and R/L hand combinations
     for i, (swing, pitcher_side) in enumerate([(s, p) for s in swing_types for p in pitcher_sides]):
         side_data = data[(data['Swing'] == swing) & (data['Pitcherhand'] == pitcher_side)]
         
+        # Plot scatter points
         scatter = axes[i].scatter(
             side_data['Platelocside'],
             side_data['Platelocheight'],
@@ -399,6 +429,18 @@ def plot_pitch_locations_by_playresult(data):
             s=100
         )
         
+        # Add Zone Shading
+        for zone, props in zone_definitions.items():
+            axes[i].add_patch(Rectangle(
+                (props['x_range'][0], props['y_range'][0]),
+                props['x_range'][1] - props['x_range'][0],
+                props['y_range'][1] - props['y_range'][0],
+                edgecolor='none',
+                facecolor=props['color'],
+                alpha=props['alpha'],
+                zorder=0  # Ensure shading is below scatter points
+            ))
+
         # Add strike zone rectangle
         axes[i].add_patch(Rectangle(
             (-0.83, 1.5),
@@ -436,7 +478,6 @@ def plot_pitch_locations_by_playresult(data):
     plt.subplots_adjust(hspace=0.4, wspace=0.2)  # More space vertically and horizontally
     
     st.pyplot(fig)
-
 
 
 
