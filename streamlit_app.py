@@ -430,7 +430,7 @@ def plot_pitch_locations_by_playresult(data):
     plate_vertices = [(-0.83, 0.1), (0.83, 0.1), (0.65, 0.25), (0, 0.5), (-0.65, 0.25)]
 
     # Create a 2x2 subplot grid
-    fig, axes = plt.subplots(2, 2, figsize=(16, 14), sharey=True, sharex=True, gridspec_kw={'height_ratios': [1, 1]})
+    fig, axes = plt.subplots(2, 2, figsize=(14, 16), sharey=True, sharex=True, gridspec_kw={'height_ratios': [1, 1]})
     axes = axes.flatten()  # Flatten to simplify indexing
     
     # Define colormap and normalization for xSLG
