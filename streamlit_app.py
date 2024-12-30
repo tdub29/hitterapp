@@ -607,7 +607,12 @@ def display_hitter_metrics(all_pitches):
         pop_fly_count = ((group_data['Angle'] > 50) & (group_data['Exitspeed'] < 85)).sum()
         pop_fly_pct = pop_fly_count / total_events if total_events > 0 else np.nan
 
-        avg_xSLG = group_data['xSLG'].mean() if 'xSLG' in group_data else np.nan
+        # Calculate avg_xSLG only for rows where Swing is 'Swing'
+        avg_xSLG = (
+            group_data.loc[group_data['Swing'] == 'Swing', 'xSLG'].mean()
+            if 'xSLG' in group_data.columns else np.nan
+        )
+
 
         # Plate Discipline Metrics
         o_swing = ((group_data['Zone'] == 'Out') & (group_data['Swing'] == 'Swing')).sum()
