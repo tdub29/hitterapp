@@ -350,6 +350,10 @@ def plot_pitch_locations_by_playresult(data):
             edgecolor='black',
             ax=axes[i]
         )
+
+        # Remove any auto-generated legend if it still exists
+        if axes[i].get_legend() is not None:
+            axes[i].get_legend().remove()
         
         # Add legend manually to ensure visibility
         if i == 0:
