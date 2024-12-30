@@ -391,7 +391,9 @@ def plot_pitch_locations_by_playresult(data):
             palette='coolwarm',
             s=100,
             edgecolor='black',
-            ax=axes[i]
+            ax=axes[i],
+            vmin=0,  # Minimum color range
+            vmax=0.8  # Maximum color range
         )
         
         # Remove any auto-generated legends
@@ -420,16 +422,22 @@ def plot_pitch_locations_by_playresult(data):
         axes[i].set_ylabel('PlateLocHeight')
 
     # Add a single colorbar legend for xSLG across all plots
-    sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=plt.Normalize(vmin=0, vmax=.8))
-    sm.set_array([])  # Required for ScalarMappable
+    # Add a single colorbar legend for xSLG across all plots
+    sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=plt.Normalize(vmin=0, vmax=0.8))
+    sm.set_array([])  # Required for ScalarMappable (though not used directly here)
     
-
-    cbar_ax = fig.add_axes([0.3, 0.5, 0.4, 0.02])  # Define position for colorbar
+    # Define position for the colorbar (adjust for desired placement)
+    cbar_ax = fig.add_axes([0.3, 0.5, 0.4, 0.02])  # [left, bottom, width, height]
     cbar = fig.colorbar(sm, cax=cbar_ax, orientation='horizontal')
-    cbar.set_label('xSLG (0 - .8)', fontsize=12, color='white')
+    
+    # Customize colorbar appearance
+    cbar.set_label('xSLG (0 - 0.8)', fontsize=12, color='white')
     cbar.ax.tick_params(labelcolor='white')
-    plt.subplots_adjust(hspace=.25)  # Added hspace for more vertical spacing
+    
+    # Remove `set_clim` as it's already handled by `Normalize`
+    plt.subplots_adjust(hspace=0.25)  # Adjust vertical spacing between rows
     st.pyplot(fig)
+
 
 
 
