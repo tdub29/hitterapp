@@ -413,7 +413,7 @@ def create_spray_chart(data, ax):
     ax.legend()
 
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Select Page", ["Heatmaps", "Spray Chart", "Hitter Metrics"])
+page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" ,"Spray Chart", "Hitter Metrics"])
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
