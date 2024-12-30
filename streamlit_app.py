@@ -220,15 +220,26 @@ selected_pitchers = st.sidebar.multiselect(
 # For now, if user deselects all, it means no pitcher selected (filtered_data will reflect that).
 pitcher_filter = df['Pitcher'].isin(selected_pitchers)
 
-# Apply filters using batter_filter
-filtered_data = df[
+# Apply filters using batter_filter (without Exitspeed filter)
+all_pitches = df[
     (batter_filter) &
     (pitcher_filter) &
     (df['Pitchcategory'].isin(selected_categories)) &
-    (df['Autopitchtype'].isin(selected_pitch_types)) &
-    (df['Exitspeed'] > 0) &
-    (df['Exitspeed'].notnull())
+    (df['Autopitchtype'].isin(selected_pitch_types)) 
 ]
+
+# Apply pitcher hand filtering if not 'All'
+if selected_pitcher_hand != 'All':
+    all_pitches = all_pitches[
+        (all_pitches['Pitcherhand'] == selected_pitcher_hand)
+    ]
+
+# Apply additional Exitspeed filter for filtered_data
+filtered_data = all_pitches[
+    (all_pitches['Exitspeed'] > 0) &
+    (all_pitches['Exitspeed'].notnull())  # Ensure valid Exitspeed data, but don't filter on > 0
+]
+
 
 # Apply pitcher hand filtering if not 'All'
 if selected_pitcher_hand != 'All':
@@ -501,7 +512,7 @@ elif page == "Spray Chart":
 
 elif page == "Pitch Locations by Playresult":
     st.title("Pitch Locations by Playresult")
-    plot_pitch_locations_by_playresult(filtered_data)
+    plot_pitch_locations_by_playresult(all_pitches)
 
 elif page == "Raw Data":
     st.title("Raw Data Display")
