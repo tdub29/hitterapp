@@ -557,18 +557,18 @@ def create_spray_chart(data, ax):
     ax.set_aspect('equal')
     ax.legend()
 
-def display_hitter_metrics(filtered_data):
+def display_hitter_metrics(all_pitches):
     """
     Displays hitter metrics in a tabular format on a Streamlit app.
     
     Args:
         filtered_data (pd.DataFrame): Filtered dataset containing hitter data.
     """
-    if filtered_data.empty:
+    if all_pitches.empty:
         st.write("No data available for the selected filters.")
         return
     
-    grouped = filtered_data.groupby('Batter')
+    grouped = all_pitches.groupby('Batter')
     rows = []
 
     for batter, group_data in grouped:
