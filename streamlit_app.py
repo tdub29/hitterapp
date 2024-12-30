@@ -313,13 +313,17 @@ def create_heatmap(data, metric, ax):
     ax.set_xlabel('PlateLocSide')
     ax.set_ylabel('PlateLocHeight')
 
-def plot_pitch_locations_by_playresult():
+def plot_pitch_locations_by_playresult(data):
+    if data.empty:
+        st.warning("No data available for the selected filters to plot pitch locations.")
+        return
+
     fig, axes = plt.subplots(1, 2, figsize=(16, 6), sharey=True)
     pitcher_sides = ['R', 'L']
     plate_vertices = [(-0.83, 0.1), (0.83, 0.1), (0.65, 0.25), (0, 0.5), (-0.65, 0.25)]
     
     for i, pitcher_side in enumerate(pitcher_sides):
-        side_data = filtered_data[filtered_data['Pitcherhand'] == pitcher_side]
+        side_data = data[data['Pitcherhand'] == pitcher_side]
         sns.scatterplot(
             data=side_data,
             x='Platelocside',
@@ -352,6 +356,7 @@ def plot_pitch_locations_by_playresult():
     
     plt.tight_layout()
     st.pyplot(fig)
+
 
 
 
@@ -457,7 +462,7 @@ elif page == "Spray Chart":
 
 elif page == "Pitch Locations by Playresult":
     st.title("Pitch Locations by Playresult")
-    plot_pitch_locations_by_playresult()
+    plot_pitch_locations_by_playresult(filtered_data)
 
 
 elif page == "Hitter Metrics":
