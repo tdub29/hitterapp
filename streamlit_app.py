@@ -425,7 +425,7 @@ def plot_pitch_locations_by_playresult(data):
             axes[i].get_legend().remove()
 
     # Add a single colorbar legend for xSLG across all plots
-    cbar_ax = fig.add_axes([0.3, 0.05, 0.4, 0.02])  # [left, bottom, width, height]
+    cbar_ax = fig.add_axes([0.3, 0.5, 0.4, 0.02])  # [left, bottom, width, height]
     cbar = fig.colorbar(sm, cax=cbar_ax, orientation='horizontal')
     
     # Customize colorbar appearance
