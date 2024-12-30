@@ -192,10 +192,10 @@ df['Event'] = np.where(
     df['Pitchcall'] == 'InPlay',
     np.where(
         df['Playresult'] == 'Error',
-        df['Taggedpitchtype'],  # Use Taggedpitchtype if Playresult is 'Error'
+        df['Taggedhittype'],  # Use Taggedpitchtype if Playresult is 'Error'
         np.where(
             df['Playresult'] == 'Out',
-            'Out: ' + df['Taggedpitchtype'] ,  # Concatenate Taggedpitchtype with "Out"
+            'Out: ' + df['Taggedhittype'] ,  # Concatenate Taggedpitchtype with "Out"
             df['Playresult']  # Otherwise, use Playresult
         )
     ),
