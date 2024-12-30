@@ -191,9 +191,13 @@ count_option_to_column = {
 df['Event'] = np.where(
     df['Pitchcall'] == 'InPlay',
     np.where(
-        df['Playresult'].isin(['Error', 'Out']),
-        df['Taggedhittype'],  # Use Taggedpitchtype if Playresult is 'Error' or 'Out'
-        df['Playresult']        # Otherwise, use Playresult
+        df['Playresult'] == 'Error',
+        df['Taggedpitchtype'],  # Use Taggedpitchtype if Playresult is 'Error'
+        np.where(
+            df['Playresult'] == 'Out',
+            'Out: ' + df['Taggedpitchtype'] ,  # Concatenate Taggedpitchtype with "Out"
+            df['Playresult']  # Otherwise, use Playresult
+        )
     ),
     df['Pitchcall']  # Default to Pitchcall if not 'InPlay'
 )
