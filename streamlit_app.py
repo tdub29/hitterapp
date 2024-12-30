@@ -439,11 +439,11 @@ def plot_pitch_locations_by_playresult(data):
 
     # Zone Definitions
     zone_definitions = {
-    'Heart': {'x_range': (-0.56, 0.56), 'y_range': (1.83, 3.17), 'color': '#7CFC00', 'alpha': 0.3},
-    'Shadow': {'x_range': (-1.11, 1.11), 'y_range': (1.17, 3.83), 'color': '#FFD700', 'alpha': 0.2},
-    'Chase': {'x_range': (-1.67, 1.67), 'y_range': (0.5, 4.33), 'color': '#FFA07A', 'alpha': 0.15},
-    'Waste': {'x_range': (-2.5, 2.5), 'y_range': (0.0, 5.0), 'color': '#FF6347', 'alpha': 0.1}
-}
+        'Heart': {'x_range': (-0.56, 0.56), 'y_range': (1.83, 3.17), 'color': '#7CFC00', 'alpha': 0.3},
+        'Shadow': {'x_range': (-1.11, 1.11), 'y_range': (1.17, 3.83), 'color': '#FFD700', 'alpha': 0.2},
+        'Chase': {'x_range': (-1.67, 1.67), 'y_range': (0.5, 4.33), 'color': '#FFA07A', 'alpha': 0.15},
+        'Waste': {'x_range': (-2.5, 2.5), 'y_range': (0.0, 5.0), 'color': '#FF6347', 'alpha': 0.1}
+    }
 
     # Loop through Swing/Take and R/L hand combinations
     for i, (swing, pitcher_side) in enumerate([(s, p) for s in swing_types for p in pitcher_sides]):
@@ -493,6 +493,19 @@ def plot_pitch_locations_by_playresult(data):
         axes[i].set_xlabel('PlateLocSide')
         axes[i].set_ylabel('PlateLocHeight')
         
+        # Add Count Labels for 'Take' Plots
+        if swing == 'Take':
+            for _, row in side_data.iterrows():
+                axes[i].text(
+                    row['Platelocside'],
+                    row['Platelocheight'],
+                    row['Count'],
+                    fontsize=8,
+                    color='black',
+                    ha='center',
+                    va='center'
+                )
+
         # Remove any auto-generated legend
         if axes[i].get_legend() is not None:
             axes[i].get_legend().remove()
