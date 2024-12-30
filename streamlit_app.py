@@ -188,7 +188,16 @@ count_option_to_column = {
     'Pitcher-Friendly': 'Pitcherfriendly'
 }
 
-df['Event'] = df.apply(lambda row: row['Playresult'] if row['Pitchcall'] == 'InPlay' else row['Pitchcall'], axis=1)
+df['Event'] = np.where(
+    df['Pitchcall'] == 'InPlay',
+    np.where(
+        df['Playresult'] == 'Error',
+        df['Taggedhittype'],  # Fall back to Taggedpitchtype if Playresult is Error
+        df['Playresult']  # Otherwise, use Playresult
+    ),
+    df['Pitchcall']  # Default to Pitchcall
+)
+
 
 # ADD PITCHER FILTER HERE
 df['Pitcher'].fillna('Machine', inplace=True)
@@ -319,22 +328,33 @@ def plot_pitch_locations_by_playresult(data):
         st.warning("No data available for the selected filters to plot pitch locations.")
         return
 
+    # Ensure 'Event' is categorical
+    data['Event'] = data['Event'].astype('category')
+    
+    # Define a discrete color palette
+    palette = sns.color_palette("tab10", n_colors=data['Event'].nunique())
+
     fig, axes = plt.subplots(1, 2, figsize=(16, 6), sharey=True)
     pitcher_sides = ['R', 'L']
     plate_vertices = [(-0.83, 0.1), (0.83, 0.1), (0.65, 0.25), (0, 0.5), (-0.65, 0.25)]
     
     for i, pitcher_side in enumerate(pitcher_sides):
         side_data = data[data['Pitcherhand'] == pitcher_side]
-        sns.scatterplot(
+        scatter = sns.scatterplot(
             data=side_data,
             x='Platelocside',
             y='Platelocheight',
             hue='Event',
-            palette='coolwarm',
+            palette=palette,
             s=100,
             edgecolor='black',
             ax=axes[i]
         )
+        
+        # Add legend manually to avoid suppression
+        if i == 0:
+            scatter.legend_.set_title("Event")
+        
         # Add strike zone rectangle
         axes[i].add_patch(Rectangle(
             (-0.83, 1.5),
@@ -354,7 +374,7 @@ def plot_pitch_locations_by_playresult(data):
         axes[i].set_ylim(0, 5)
         axes[i].set_xlabel('PlateLocSide')
         axes[i].set_ylabel('PlateLocHeight')
-    
+
     plt.tight_layout()
     st.pyplot(fig)
 
