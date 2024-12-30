@@ -202,6 +202,14 @@ df['Event'] = np.where(
     df['Pitchcall']  # Default to Pitchcall if not 'InPlay'
 )
 
+# Create 'Swing' column based on Exitspeed and Pitchcall
+df['Swing'] = np.where(
+    (df['Exitspeed'] > 0) | (df['Pitchcall'].str.contains('Swing|Foul', case=False, na=False)),
+    'Swing',  # Label as Swing if Exitspeed > 0 or Pitchcall contains 'Swing'/'Foul'
+    'Take'    # Otherwise, label as Take
+)
+
+
 
 
 # ADD PITCHER FILTER HERE
@@ -519,10 +527,10 @@ elif page == "Raw Data":
 
   
     st.write("### Raw Data ")
-    if filtered_data.empty:
+    if all_pitches.empty:
         st.warning("No filtered data available. Adjust your filters to see results.")
     else:
-        st.dataframe(filtered_data.head(1000))  # Display the first 100 rows of the filtered dataset
+        st.dataframe(all_pitches.head(1000))  # Display the first 100 rows of the filtered dataset
 
 elif page == "Hitter Metrics":
     st.title("Hitter Metrics")
