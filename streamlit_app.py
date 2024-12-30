@@ -187,6 +187,8 @@ count_option_to_column = {
     'Pitcher-Friendly': 'Pitcherfriendly'
 }
 
+df['Event'] = df.apply(lambda row: row['Playresult'] if row['Pitchcall'] == 'InPlay' else row['Pitchcall'], axis=1)
+
 # ADD PITCHER FILTER HERE
 df['Pitcher'].fillna('Machine', inplace=True)
 pitchers = df['Pitcher'].unique()
@@ -311,6 +313,47 @@ def create_heatmap(data, metric, ax):
     ax.set_xlabel('PlateLocSide')
     ax.set_ylabel('PlateLocHeight')
 
+def plot_pitch_locations_by_playresult():
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6), sharey=True)
+    pitcher_sides = ['R', 'L']
+    plate_vertices = [(-0.83, 0.1), (0.83, 0.1), (0.65, 0.25), (0, 0.5), (-0.65, 0.25)]
+    
+    for i, pitcher_side in enumerate(pitcher_sides):
+        side_data = filtered_data[filtered_data['Pitcherhand'] == pitcher_side]
+        sns.scatterplot(
+            data=side_data,
+            x='Platelocside',
+            y='Platelocheight',
+            hue='Event',
+            palette='coolwarm',
+            s=100,
+            edgecolor='black',
+            ax=axes[i]
+        )
+        # Add strike zone rectangle
+        axes[i].add_patch(Rectangle(
+            (-0.83, 1.5),
+            1.66,
+            2.1,
+            edgecolor='black',
+            facecolor='none',
+            lw=2
+        ))
+        
+        # Add home plate polygon
+        plate = Polygon(plate_vertices, closed=True, linewidth=1, edgecolor='k', facecolor='none')
+        axes[i].add_patch(plate)
+        
+        axes[i].set_title(f'Pitch Locations vs {pitcher_side}-Handed Pitchers')
+        axes[i].set_xlim(-2.5, 2.5)
+        axes[i].set_ylim(0, 5)
+        axes[i].set_xlabel('PlateLocSide')
+        axes[i].set_ylabel('PlateLocHeight')
+    
+    plt.tight_layout()
+    st.pyplot(fig)
+
+
 
 
 def create_spray_chart(data, ax):
@@ -411,6 +454,11 @@ elif page == "Spray Chart":
     fig, ax = plt.subplots(figsize=(10, 8))
     create_spray_chart(spray_data, ax)
     st.pyplot(fig)
+
+elif page == "Pitch Locations by Playresult":
+    st.title("Pitch Locations by Playresult")
+    plot_pitch_locations_by_playresult()
+
 
 elif page == "Hitter Metrics":
     st.title("Hitter Metrics")
