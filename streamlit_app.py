@@ -667,7 +667,7 @@ def display_hitter_metrics(all_pitches):
         })
 
     metrics_df = pd.DataFrame(rows)
-    st.table(metrics_df)
+    st.dataframe(metrics_df)
 
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" ,"Spray Chart", "Hitter Metrics", "Raw Data"])
