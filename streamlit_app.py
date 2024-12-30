@@ -733,5 +733,5 @@ elif page == "Raw Data":
 
 elif page == "Hitter Metrics":
     st.title("Hitter Metrics")
-    display_hitter_metrics(filtered_data)
+    display_hitter_metrics(all_pitches)
 
