@@ -422,10 +422,10 @@ def plot_pitch_locations_by_playresult(data):
     # Add a single colorbar legend for xSLG across all plots
     sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=plt.Normalize(vmin=0, vmax=2))
     sm.set_array([])  # Required for ScalarMappable
-    cbar_ax = fig.add_axes([0.92, 0.3, 0.02, 0.4])  # x, y, width, height (adjust for positioning)
+    cbar_ax = fig.add_axes([0.5, 0.3, 0.02, 0.4])  # x, y, width, height (adjust for positioning)
     cbar = fig.colorbar(sm, cax=cbar_ax, orientation='vertical')
     cbar.set_label('xSLG (0 - 2)', fontsize=12, color='white')
-    cbar.ax.tick_params(labelcolor='darkblue')
+    cbar.ax.tick_params(labelcolor='white')
     plt.subplots_adjust(hspace=.15)  # Added hspace for more vertical spacing
     st.pyplot(fig)
 
