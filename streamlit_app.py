@@ -518,11 +518,11 @@ elif page == "Raw Data":
     st.title("Raw Data Display")
 
   
-    st.write("### Filtered Dataset (First 100 rows)")
-    if all_pitches.empty:
+    st.write("### Raw Data ")
+    if filtered_data.empty:
         st.warning("No filtered data available. Adjust your filters to see results.")
     else:
-        st.dataframe(all_pitches.head(1000))  # Display the first 100 rows of the filtered dataset
+        st.dataframe(filtered_data.head(1000))  # Display the first 100 rows of the filtered dataset
 
 elif page == "Hitter Metrics":
     st.title("Hitter Metrics")
