@@ -498,7 +498,7 @@ def plot_pitch_locations_by_playresult(data):
         if swing == 'Take':
             for _, row in side_data.iterrows():
                 axes[i].text(
-                    row['Platelocside'],
+                    row['Platelocside']-1,
                     row['Platelocheight'],
                     row['Count'],
                     fontsize=8,
