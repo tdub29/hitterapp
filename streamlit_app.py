@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Arc
 import xgboost as xgb
 from statsmodels.nonparametric.kernel_regression import KernelReg
+from matplotlib.patches import Polygon, Rectangle
 
 booster = xgb.Booster()
 booster.load_model('xSLG_model.json')
