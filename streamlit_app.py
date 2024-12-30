@@ -422,6 +422,7 @@ def plot_pitch_locations_by_playresult(data):
     # Ensure Swing and xSLG fields exist and are properly formatted
     data['Swing'] = data['Swing'].astype('category')
     data['xSLG'] = pd.to_numeric(data['xSLG'].fillna(0), errors='coerce').fillna(0)
+    data['Count'] = data['Balls'].astype(str) + '-' + data['Strikes'].astype(str)
     
     # Define pitcher sides and swing types
     pitcher_sides = ['R', 'L']
@@ -501,9 +502,10 @@ def plot_pitch_locations_by_playresult(data):
                     row['Platelocheight'],
                     row['Count'],
                     fontsize=8,
-                    color='black',
+                    color='darkblue',  # Custom label color
                     ha='center',
-                    va='center'
+                    va='center',
+                    zorder=3  # Ensure text is above other elements
                 )
 
         # Remove any auto-generated legend
@@ -522,6 +524,7 @@ def plot_pitch_locations_by_playresult(data):
     plt.subplots_adjust(hspace=0.4, wspace=0.2)  # More space vertically and horizontally
     
     st.pyplot(fig)
+
 
 
 
