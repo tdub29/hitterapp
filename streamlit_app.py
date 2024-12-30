@@ -264,6 +264,21 @@ X_pred.rename(columns={'Exitspeed':'launch_speed', 'Angle':'launch_angle'}, inpl
 # Now predict using the corrected feature names
 filtered_data['xSLG'] = best_model.predict(X_pred)
 
+# Ensure Pitchuid exists in both datasets
+if 'Pitchuid' in filtered_data.columns and 'Pitchuid' in all_pitches.columns:
+    # Select relevant columns from filtered_data
+    xSLG_data = filtered_data[['Pitchuid', 'xSLG']].copy()
+    
+    # Drop duplicates to avoid ambiguity in join
+    xSLG_data = xSLG_data.drop_duplicates(subset='Pitchuid')
+    
+    # Perform the join on Pitchuid
+    all_pitches = all_pitches.merge(xSLG_data, on='Pitchuid', how='left')
+    
+    # Fill any missing xSLG values with NaN
+    all_pitches['xSLG'] = all_pitches['xSLG'].fillna(np.nan)
+
+
 def create_heatmap(data, metric, ax):
     if data.empty or metric not in data.columns:
         ax.set_title(f"No data available for {metric}.")
@@ -347,50 +362,37 @@ def create_heatmap(data, metric, ax):
     ax.set_xlabel('PlateLocSide')
     ax.set_ylabel('PlateLocHeight')
 
-def plot_pitch_locations_by_playresult(data): 
+def plot_pitch_locations_by_playresult(data):
     if data.empty:
         st.warning("No data available for the selected filters to plot pitch locations.")
         return
 
-    # Ensure 'Event' is categorical
-    data['Event'] = data['Event'].astype('category')
+    # Ensure Swing and xSLG fields exist and are properly formatted
+    data['Swing'] = data['Swing'].astype('category')
+    data['xSLG'] = pd.to_numeric(data['xSLG'], errors='coerce')
     
-    # Define a discrete color palette
-    palette = sns.color_palette("tab10", n_colors=data['Event'].nunique())
-
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6), sharey=True)
+    # Define pitcher sides and swing types
     pitcher_sides = ['R', 'L']
+    swing_types = ['Swing', 'Take']
     plate_vertices = [(-0.83, 0.1), (0.83, 0.1), (0.65, 0.25), (0, 0.5), (-0.65, 0.25)]
+
+    fig, axes = plt.subplots(2, 2, figsize=(16, 12), sharey=True, sharex=True)
+    axes = axes.flatten()  # Flatten to simplify indexing
     
-    for i, pitcher_side in enumerate(pitcher_sides):
-        side_data = data[data['Pitcherhand'] == pitcher_side]
+    # Loop through Swing/Take and R/L hand combinations
+    for i, (swing, pitcher_side) in enumerate([(s, p) for s in swing_types for p in pitcher_sides]):
+        side_data = data[(data['Swing'] == swing) & (data['Pitcherhand'] == pitcher_side)]
+        
         scatter = sns.scatterplot(
             data=side_data,
             x='Platelocside',
             y='Platelocheight',
-            hue='Event',
-            palette=palette,
+            hue='xSLG',
+            palette='coolwarm',
             s=100,
             edgecolor='black',
             ax=axes[i]
         )
-
-        # Remove any auto-generated legend if it still exists
-        if axes[i].get_legend() is not None:
-            axes[i].get_legend().remove()
-        
-        # Add legend manually to ensure visibility
-        if i == 0:
-            legend = axes[i].legend(
-                title='Event',
-                bbox_to_anchor=(1.05, 1),
-                loc='upper left',
-                borderaxespad=0.
-            )
-            # Set legend title and text to dark blue
-            legend.get_title().set_color('darkblue')
-            for text in legend.get_texts():
-                text.set_color('darkblue')
         
         # Add strike zone rectangle
         axes[i].add_patch(Rectangle(
@@ -406,11 +408,20 @@ def plot_pitch_locations_by_playresult(data):
         plate = Polygon(plate_vertices, closed=True, linewidth=1, edgecolor='k', facecolor='none')
         axes[i].add_patch(plate)
         
-        axes[i].set_title(f'Pitch Locations vs {pitcher_side}-Handed Pitchers')
+        # Titles for each subplot
+        axes[i].set_title(f'{swing} vs {pitcher_side}-Handed Pitchers')
         axes[i].set_xlim(-2.5, 2.5)
         axes[i].set_ylim(0, 5)
         axes[i].set_xlabel('PlateLocSide')
         axes[i].set_ylabel('PlateLocHeight')
+
+    # Add a single colorbar legend for xSLG across all plots
+    sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=plt.Normalize(vmin=0, vmax=2))
+    sm.set_array([])  # Required for ScalarMappable
+    
+    cbar = fig.colorbar(sm, ax=axes, orientation='horizontal', fraction=0.05, pad=0.1)
+    cbar.set_label('xSLG (0 - 2)', fontsize=12, color='darkblue')
+    cbar.ax.tick_params(labelcolor='darkblue')
 
     plt.tight_layout()
     st.pyplot(fig)
