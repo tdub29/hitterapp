@@ -408,11 +408,11 @@ def plot_pitch_locations_by_playresult(data):
 
     # Zone Definitions
     zone_definitions = {
-        'Heart': {'x_range': (-0.83, 0.83), 'y_range': (1.5, 3.6), 'color': '#7CFC00', 'alpha': 0.3},
-        'Shadow': {'x_range': (-1.5, 1.5), 'y_range': (1.0, 4.0), 'color': '#FFD700', 'alpha': 0.2},
-        'Chase': {'x_range': (-2.0, 2.0), 'y_range': (0.5, 4.5), 'color': '#FFA07A', 'alpha': 0.15},
-        'Waste': {'x_range': (-2.5, 2.5), 'y_range': (0.0, 5.0), 'color': '#FF6347', 'alpha': 0.1}
-    }
+    'Heart': {'x_range': (-0.56, 0.56), 'y_range': (1.83, 3.17), 'color': '#7CFC00', 'alpha': 0.3},
+    'Shadow': {'x_range': (-1.11, 1.11), 'y_range': (1.17, 3.83), 'color': '#FFD700', 'alpha': 0.2},
+    'Chase': {'x_range': (-1.67, 1.67), 'y_range': (0.5, 4.33), 'color': '#FFA07A', 'alpha': 0.15},
+    'Waste': {'x_range': (-2.5, 2.5), 'y_range': (0.0, 5.0), 'color': '#FF6347', 'alpha': 0.1}
+}
 
     # Loop through Swing/Take and R/L hand combinations
     for i, (swing, pitcher_side) in enumerate([(s, p) for s in swing_types for p in pitcher_sides]):
