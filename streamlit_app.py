@@ -209,6 +209,30 @@ df['Swing'] = np.where(
     'Take'    # Otherwise, label as Take
 )
 
+# Define strike zone boundaries
+STRIKE_ZONE_SIDE = (-0.83, 0.83)  # Plate width in feet
+STRIKE_ZONE_HEIGHT = (1.5, 3.5)   # Typical strike zone height in feet
+
+# Create 'Zone' column based on Platelocside and Platelocheight
+df['Zone'] = np.where(
+    (df['Platelocside'].between(*STRIKE_ZONE_SIDE)) & 
+    (df['Platelocheight'].between(*STRIKE_ZONE_HEIGHT)),
+    'InZone',  # If pitch is within both side and height boundaries
+    'Out'      # Otherwise, classify as Out
+)
+
+# Create 'Atbatid' by converting and concatenating specific columns without modifying 'Date'
+df['Atbatid'] = (
+    df['Date'].astype(str).fillna('') + '_' +
+    df['Pitcher'].fillna('').astype(str) + '_' +
+    df['Paoffinning'].fillna('').astype(str) + '_' +
+    df['Inning'].fillna('').astype(str)
+)
+
+# Create 'Contact' column based on Exitspeed
+df['Contact'] = np.where(df['Exitspeed'] > 0, 'Yes', 'No')
+
+
 # Map Plate Zones based on PlatelocSide and PlatelocHeight
 def map_plate_zone(row):
     side = row['Platelocside']
@@ -533,6 +557,118 @@ def create_spray_chart(data, ax):
     ax.set_aspect('equal')
     ax.legend()
 
+def display_hitter_metrics(filtered_data):
+    """
+    Displays hitter metrics in a tabular format on a Streamlit app.
+    
+    Args:
+        filtered_data (pd.DataFrame): Filtered dataset containing hitter data.
+    """
+    if filtered_data.empty:
+        st.write("No data available for the selected filters.")
+        return
+    
+    grouped = filtered_data.groupby('Batter')
+    rows = []
+
+    for batter, group_data in grouped:
+        total_events = len(group_data)
+        
+        # Basic Metrics
+        avg_ev = group_data['Exitspeed'].mean() if 'Exitspeed' in group_data else np.nan
+        max_ev = group_data['Exitspeed'].max() if 'Exitspeed' in group_data else np.nan
+        avg_launch_angle = group_data['Angle'].mean() if 'Angle' in group_data else np.nan
+        hard_hit_count = (group_data['Exitspeed'] > 90).sum()
+        hard_hit_pct = hard_hit_count / total_events if total_events > 0 else np.nan
+        
+        barrel_mask = (group_data['Exitspeed'] >= 99) & (group_data['Angle'].between(25, 31))
+        barrel_count = barrel_mask.sum()
+        barrel_pct = barrel_count / total_events if total_events > 0 else np.nan
+        
+        gb_count = (group_data['Angle'] < 0).sum()
+        gb_pct = gb_count / total_events if total_events > 0 else np.nan
+        
+        # Pull Percentage
+        if 'Batterside' in group_data.columns and not group_data['Batterside'].isnull().all():
+            batter_sides = group_data['Batterside'].dropna().unique()
+            batter_side = batter_sides[0] if len(batter_sides) > 0 else None
+        else:
+            batter_side = None
+
+        if batter_side == 'L':
+            pull_count = (group_data['Direction'] > 0).sum()
+        elif batter_side == 'R':
+            pull_count = (group_data['Direction'] < 0).sum()
+        else:
+            pull_count = np.nan
+
+        pull_pct = pull_count / total_events if total_events > 0 and not np.isnan(pull_count) else np.nan
+
+        pop_fly_count = ((group_data['Angle'] > 50) & (group_data['Exitspeed'] < 85)).sum()
+        pop_fly_pct = pop_fly_count / total_events if total_events > 0 else np.nan
+
+        avg_xSLG = group_data['xSLG'].mean() if 'xSLG' in group_data else np.nan
+
+        # Plate Discipline Metrics
+        o_swing = ((group_data['Zone'] == 'Out') & (group_data['Swing'] == 'Swing')).sum()
+        z_swing = ((group_data['Zone'] == 'In') & (group_data['Swing'] == 'Swing')).sum()
+        total_swings = (group_data['Swing'] == 'Swing').sum()
+        total_pitches = len(group_data)
+
+        o_contact = ((group_data['Zone'] == 'Out') & (group_data['Swing'] == 'Swing') & (group_data['Contact'] == 'Yes')).sum()
+        z_contact = ((group_data['Zone'] == 'In') & (group_data['Swing'] == 'Swing') & (group_data['Contact'] == 'Yes')).sum()
+        total_contact = (group_data['Contact'] == 'Yes').sum()
+
+        zone_pitches = (group_data['Zone'] == 'In').sum()
+        first_strike = ((group_data['Pitchcall'] == 'Strike') & (group_data['Swing'] == 'Take')).sum()
+        swinging_strike = ((group_data['Swing'] == 'Swing') & (group_data['Contact'] == 'No')).sum()
+
+        # Avoid division by zero with np.maximum
+        o_swing_pct = o_swing / np.maximum((group_data['Zone'] == 'Out').sum(), 1)
+        z_swing_pct = z_swing / np.maximum((group_data['Zone'] == 'In').sum(), 1)
+        swing_pct = total_swings / np.maximum(total_pitches, 1)
+        o_contact_pct = o_contact / np.maximum(o_swing, 1)
+        z_contact_pct = z_contact / np.maximum(z_swing, 1)
+        contact_pct = total_contact / np.maximum(total_swings, 1)
+        zone_pct = zone_pitches / np.maximum(total_pitches, 1)
+        f_strike_pct = first_strike / np.maximum(group_data['Atbatid'].nunique(), 1)
+        swstr_pct = swinging_strike / np.maximum(total_pitches, 1)
+
+        # Formatting functions
+        def fmt_num(val, decimals=2):
+            return f"{val:.{decimals}f}" if pd.notna(val) else np.nan
+
+        def fmt_pct(val):
+            return f"{val*100:.2f}%" if pd.notna(val) else np.nan
+
+        def fmt_xslg(val):
+            return f"{val:.3f}" if pd.notna(val) else np.nan
+
+        rows.append({
+            'Batter': batter,
+            'Avg EV': fmt_num(avg_ev),
+            'Max EV': fmt_num(max_ev),
+            'Avg LA': fmt_num(avg_launch_angle),
+            'xSLG': fmt_xslg(avg_xSLG),
+            'Hard Hit%': fmt_pct(hard_hit_pct),
+            'Barrel%': fmt_pct(barrel_pct),
+            'O-Swing%': fmt_pct(o_swing_pct),
+            'Z-Swing%': fmt_pct(z_swing_pct),
+            'Swing%': fmt_pct(swing_pct),
+            'O-Contact%': fmt_pct(o_contact_pct),
+            'Z-Contact%': fmt_pct(z_contact_pct),
+            'Contact%': fmt_pct(contact_pct),
+            'Zone%': fmt_pct(zone_pct),
+            'F-Strike%': fmt_pct(f_strike_pct),
+            'SwStr%': fmt_pct(swstr_pct),
+            'GB%': fmt_pct(gb_pct),
+            'PULL%': fmt_pct(pull_pct),
+            'POP FLY%': fmt_pct(pop_fly_pct)
+        })
+
+    metrics_df = pd.DataFrame(rows)
+    st.table(metrics_df)
+
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" ,"Spray Chart", "Hitter Metrics", "Raw Data"])
 
@@ -597,97 +733,5 @@ elif page == "Raw Data":
 
 elif page == "Hitter Metrics":
     st.title("Hitter Metrics")
-
-    if not filtered_data.empty:
-        # Group by Batter to display a row per batter
-        grouped = filtered_data.groupby('Batter')
-
-        rows = []
-        for batter, group_data in grouped:
-            total_events = len(group_data)
-
-            avg_ev = group_data['Exitspeed'].mean() if 'Exitspeed' in group_data else np.nan
-            max_ev = group_data['Exitspeed'].max() if 'Exitspeed' in group_data else np.nan
-            avg_launch_angle = group_data['Angle'].mean() if 'Angle' in group_data else np.nan
-            hard_hit_count = (group_data['Exitspeed'] > 90).sum()
-            hard_hit_pct = hard_hit_count / total_events if total_events > 0 else np.nan
-
-            barrel_mask = (group_data['Exitspeed'] >= 99) & (group_data['Angle'].between(25,31))
-            barrel_count = barrel_mask.sum()
-            barrel_pct = barrel_count / total_events if total_events > 0 else np.nan
-
-            ev_90th = 'NA'
-            zcontact = 'NA'
-            swstrk_pct = 'NA'
-            kbb_pct = 'NA'
-            contact_pct = 'NA'
-            z_swing_chase_pct = 'NA'
-            xwoba = 'NA'
-
-            gb_count = (group_data['Angle'] < 0).sum()
-            gb_pct = gb_count / total_events if total_events > 0 else np.nan
-
-            if 'Batterside' in group_data.columns and not group_data['Batterside'].isnull().all():
-                batter_sides = group_data['Batterside'].dropna().unique()
-                if len(batter_sides) > 0:
-                    batter_side = batter_sides[0]
-                else:
-                    batter_side = None
-            else:
-                batter_side = None
-
-            if batter_side == 'L':
-                pull_count = (group_data['Direction'] > 0).sum()
-            elif batter_side == 'R':
-                pull_count = (group_data['Direction'] < 0).sum()
-            else:
-                pull_count = np.nan
-
-            pull_pct = pull_count / total_events if total_events > 0 and not np.isnan(pull_count) else np.nan
-
-            pop_fly_count = ((group_data['Angle'] > 50) & (group_data['Exitspeed'] < 85)).sum()
-            pop_fly_pct = pop_fly_count / total_events if total_events > 0 else np.nan
-
-            avg_xSLG = group_data['xSLG'].mean() if 'xSLG' in group_data else np.nan
-
-            # Format the numeric values:
-            def fmt_num(val, decimals=2):
-                if pd.isna(val):
-                    return np.nan
-                return f"{val:.{decimals}f}"
-
-            def fmt_pct(val):
-                if pd.isna(val):
-                    return np.nan
-                return f"{val*100:.2f}%"
-
-            def fmt_xslg(val):
-                if pd.isna(val):
-                    return np.nan
-                return f"{val:.3f}"
-
-            rows.append({
-                'Batter': batter,
-                'Avg EV': fmt_num(avg_ev),
-                'Max EV': fmt_num(max_ev),
-                'Avg LA': fmt_num(avg_launch_angle),
-                'xSLG': fmt_xslg(avg_xSLG),
-                'Hard Hit%': fmt_pct(hard_hit_pct),
-                'Barrel%': fmt_pct(barrel_pct),
-                '90TH% EV': ev_90th,
-                'zCONTACT': zcontact,
-                'SwStrk%': swstrk_pct,
-                'K-BB%': kbb_pct,
-                'CONTACT%': contact_pct,
-                'zSWING-CHASE%': z_swing_chase_pct,
-                'xWOBA': xwoba,
-                'GB%': fmt_pct(gb_pct),
-                'PULL%': fmt_pct(pull_pct),
-                'POP FLY%': fmt_pct(pop_fly_pct)
-            })
-
-        metrics_df = pd.DataFrame(rows)
-        st.table(metrics_df)
-    else:
-        st.write("No data available for the selected filters.")
+    display_hitter_metrics(filtered_data)
 
