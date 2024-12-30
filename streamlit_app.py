@@ -369,14 +369,14 @@ def plot_pitch_locations_by_playresult(data):
 
     # Ensure Swing and xSLG fields exist and are properly formatted
     data['Swing'] = data['Swing'].astype('category')
-    data['xSLG'] = pd.to_numeric(data['xSLG'], errors='coerce')
+    data['xSLG'] = pd.to_numeric(data['xSLG'].fillna(0), errors='coerce').fillna(0)
     
     # Define pitcher sides and swing types
     pitcher_sides = ['R', 'L']
     swing_types = ['Swing', 'Take']
     plate_vertices = [(-0.83, 0.1), (0.83, 0.1), (0.65, 0.25), (0, 0.5), (-0.65, 0.25)]
 
-    fig, axes = plt.subplots(2, 2, figsize=(16, 12), sharey=True, sharex=True)
+    fig, axes = plt.subplots(2, 2, figsize=(16, 14), sharey=True, sharex=True, gridspec_kw={'height_ratios': [1, 1]})
     axes = axes.flatten()  # Flatten to simplify indexing
     
     # Loop through Swing/Take and R/L hand combinations
@@ -393,6 +393,10 @@ def plot_pitch_locations_by_playresult(data):
             edgecolor='black',
             ax=axes[i]
         )
+        
+        # Remove any auto-generated legends
+        if axes[i].get_legend() is not None:
+            axes[i].get_legend().remove()
         
         # Add strike zone rectangle
         axes[i].add_patch(Rectangle(
@@ -419,10 +423,12 @@ def plot_pitch_locations_by_playresult(data):
     sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=plt.Normalize(vmin=0, vmax=2))
     sm.set_array([])  # Required for ScalarMappable
     
-    cbar = fig.colorbar(sm, ax=axes, orientation='horizontal', fraction=0.05, pad=0.1)
-    cbar.set_label('xSLG (0 - 2)', fontsize=12, color='darkblue')
+    cbar_ax = fig.add_axes([0.3, 0.07, 0.4, 0.02])  # Define position for colorbar
+    cbar = fig.colorbar(sm, cax=cbar_ax, orientation='horizontal')
+    cbar.set_label('xSLG (0 - 2)', fontsize=12, color='black')
     cbar.ax.tick_params(labelcolor='darkblue')
 
+    plt.subplots_adjust(bottom=0.15)  # Add extra space at the bottom for the legend
     plt.tight_layout()
     st.pyplot(fig)
 
