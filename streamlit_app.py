@@ -376,29 +376,28 @@ def plot_pitch_locations_by_playresult(data):
     swing_types = ['Swing', 'Take']
     plate_vertices = [(-0.83, 0.1), (0.83, 0.1), (0.65, 0.25), (0, 0.5), (-0.65, 0.25)]
 
+    # Create a 2x2 subplot grid
     fig, axes = plt.subplots(2, 2, figsize=(16, 14), sharey=True, sharex=True, gridspec_kw={'height_ratios': [1, 1]})
     axes = axes.flatten()  # Flatten to simplify indexing
     
+    # Define colormap and normalization for xSLG
+    norm = plt.Normalize(vmin=0, vmax=0.8)
+    sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=norm)
+    sm.set_array([])  # Required for colorbar
+
     # Loop through Swing/Take and R/L hand combinations
     for i, (swing, pitcher_side) in enumerate([(s, p) for s in swing_types for p in pitcher_sides]):
         side_data = data[(data['Swing'] == swing) & (data['Pitcherhand'] == pitcher_side)]
         
-        scatter = sns.scatterplot(
-            data=side_data,
-            x='Platelocside',
-            y='Platelocheight',
-            hue='xSLG',
-            palette='coolwarm',
-            s=100,
+        scatter = axes[i].scatter(
+            side_data['Platelocside'],
+            side_data['Platelocheight'],
+            c=side_data['xSLG'],
+            cmap='coolwarm',
+            norm=norm,
             edgecolor='black',
-            ax=axes[i],
-            vmin=0,  # Minimum color range
-            vmax=0.8  # Maximum color range
+            s=100
         )
-        
-        # Remove any auto-generated legends
-        if axes[i].get_legend() is not None:
-            axes[i].get_legend().remove()
         
         # Add strike zone rectangle
         axes[i].add_patch(Rectangle(
@@ -420,24 +419,23 @@ def plot_pitch_locations_by_playresult(data):
         axes[i].set_ylim(0, 5)
         axes[i].set_xlabel('PlateLocSide')
         axes[i].set_ylabel('PlateLocHeight')
+        
+        # Remove any auto-generated legend
+        if axes[i].get_legend() is not None:
+            axes[i].get_legend().remove()
 
     # Add a single colorbar legend for xSLG across all plots
-    # Add a single colorbar legend for xSLG across all plots
-    sm = plt.cm.ScalarMappable(cmap='coolwarm', norm=plt.Normalize(vmin=0, vmax=0.8))
-    sm.set_array([])  # Required for ScalarMappable (though not used directly here)
-    
-    # Define position for the colorbar (adjust for desired placement)
-    cbar_ax = fig.add_axes([0.3, 0.5, 0.4, 0.02])  # [left, bottom, width, height]
+    cbar_ax = fig.add_axes([0.3, 0.05, 0.4, 0.02])  # [left, bottom, width, height]
     cbar = fig.colorbar(sm, cax=cbar_ax, orientation='horizontal')
     
     # Customize colorbar appearance
     cbar.set_label('xSLG (0 - 0.8)', fontsize=12, color='white')
     cbar.ax.tick_params(labelcolor='white')
     
-    # Remove `set_clim` as it's already handled by `Normalize`
-    plt.subplots_adjust(hspace=0.25)  # Adjust vertical spacing between rows
+    # Adjust spacing between rows and columns
+    plt.subplots_adjust(hspace=0.4, wspace=0.2)  # More space vertically and horizontally
+    
     st.pyplot(fig)
-
 
 
 
