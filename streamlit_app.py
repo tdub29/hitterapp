@@ -457,7 +457,7 @@ def plot_pitch_locations_by_playresult(data):
         side_data = data[(data['Swing'] == swing) & (data['Pitcherhand'] == pitcher_side)]
         
         for _, row in side_data.iterrows():
-            marker = 'o' if row['Whiff'] == 'Yes' else 'x'
+            marker = 'o' if row['Whiff'] == 'No' else 'x'
             axes[i].scatter(
                 row['Platelocside'],
                 row['Platelocheight'],
