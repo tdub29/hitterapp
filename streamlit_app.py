@@ -706,8 +706,52 @@ def display_hitter_metrics(all_pitches):
     metrics_df = pd.DataFrame(rows)
     st.dataframe(metrics_df)
 
+def calculate_zone_metrics(data):
+    """
+    Calculate Swing%, Contact%, xSLG (only on swings), and Hard Hit% for each PlateZone.
+    """
+    if 'PlateZone' not in data.columns:
+        st.error("The column 'PlateZone' does not exist in the dataset.")
+        return
+
+    # List of valid zones
+    zones = ['Heart', 'Shadow', 'Chase', 'Waste']
+    zone_metrics = []
+
+    for zone in zones:
+        # Filter data for the current zone
+        zone_data = data[data['PlateZone'] == zone]
+        zone_swings = zone_data[zone_data['Swing'] == 'Swing']
+        
+        total_pitches = len(zone_data)
+        swings = len(zone_swings)
+        contacts = (zone_swings['Contact'] == 'Yes').sum()
+        hard_hits = (zone_swings['Exitspeed'] > 90).sum() if 'Exitspeed' in zone_swings.columns else 0
+        xslg = zone_swings['xSLG'].mean() if not zone_swings['xSLG'].isnull().all() else np.nan
+        
+        # Calculate Metrics
+        swing_pct = swings / total_pitches if total_pitches > 0 else 0
+        contact_pct = contacts / swings if swings > 0 else 0
+        hard_hit_pct = hard_hits / swings if swings > 0 else 0
+        
+        zone_metrics.append({
+            'Zone': zone,
+            'Total Pitches': total_pitches,
+            'Swing%': round(swing_pct, 4),
+            'Contact%': round(contact_pct, 4),
+            'xSLG': round(xslg, 4) if pd.notnull(xslg) else 'N/A',
+            'Hard Hit%': round(hard_hit_pct, 4)
+        })
+    
+    # Convert results to DataFrame
+    zone_metrics_df = pd.DataFrame(zone_metrics)
+    
+    # Display in Streamlit
+    st.write("### Zone Metrics Overview")
+    st.dataframe(zone_metrics_df)
+
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" ,"Spray Chart", "Hitter Metrics", "Raw Data"])
+page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" ,"Spray Chart", "Hitter Metrics",  "Zone Metrics" ,"Raw Data"])
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
@@ -771,4 +815,8 @@ elif page == "Raw Data":
 elif page == "Hitter Metrics":
     st.title("Hitter Metrics")
     display_hitter_metrics(all_pitches)
+
+elif page == "Zone Metrics":
+    st.title("Zone Metrics: Heart, Shadow, Chase, Waste")
+    calculate_zone_metrics(all_pitches)
 
