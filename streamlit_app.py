@@ -232,6 +232,12 @@ df['Atbatid'] = (
 # Create 'Contact' column based on Exitspeed
 df['Contact'] = np.where(df['Exitspeed'] > 0, 'Yes', 'No')
 
+df['Whiff'] = np.where(
+    (df['Swing'] == 'Swing') & (df['Contact'] == 'No'),
+    'Yes',  # Mark as 'Yes' if both conditions are met
+    'No'    # Otherwise, mark as 'No'
+)
+
 # Ensure Balls and Strikes are numeric
 df['Balls'] = pd.to_numeric(df['Balls'], errors='coerce').fillna(0).astype(int)
 df['Strikes'] = pd.to_numeric(df['Strikes'], errors='coerce').fillna(0).astype(int)
@@ -451,7 +457,7 @@ def plot_pitch_locations_by_playresult(data):
         side_data = data[(data['Swing'] == swing) & (data['Pitcherhand'] == pitcher_side)]
         
         for _, row in side_data.iterrows():
-            marker = 'o' if row['Contact'] == 'Yes' else 'x'
+            marker = 'o' if row['Whiff'] == 'Yes' else 'x'
             axes[i].scatter(
                 row['Platelocside'],
                 row['Platelocheight'],
