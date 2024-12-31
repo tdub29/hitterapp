@@ -450,17 +450,33 @@ def plot_pitch_locations_by_playresult(data):
     for i, (swing, pitcher_side) in enumerate([(s, p) for s in swing_types for p in pitcher_sides]):
         side_data = data[(data['Swing'] == swing) & (data['Pitcherhand'] == pitcher_side)]
         
-        # Plot scatter points
-        scatter = axes[i].scatter(
-            side_data['Platelocside'],
-            side_data['Platelocheight'],
-            c=side_data['xSLG'],
-            cmap='coolwarm',
-            norm=norm,
-            edgecolor='black',
-            s=100
-        )
-        
+        for _, row in side_data.iterrows():
+            marker = 'o' if row['Contact'] == 'Yes' else 'x'
+            axes[i].scatter(
+                row['Platelocside'],
+                row['Platelocheight'],
+                c=row['xSLG'],
+                cmap='coolwarm',
+                norm=norm,
+                edgecolor='black',
+                s=100,
+                marker=marker,
+                zorder=3
+            )
+            
+            # Add Count Labels for 'Take' Plots
+            if swing == 'Take':
+                axes[i].text(
+                    row['Platelocside'] - 0.15,
+                    row['Platelocheight'],
+                    row['Count'],
+                    fontsize=8,
+                    color='darkblue',
+                    ha='right',
+                    va='center',
+                    zorder=4
+                )
+
         # Add Zone Shading
         for zone, props in zone_definitions.items():
             axes[i].add_patch(Rectangle(
@@ -493,20 +509,6 @@ def plot_pitch_locations_by_playresult(data):
         axes[i].set_ylim(0, 5)
         axes[i].set_xlabel('PlateLocSide')
         axes[i].set_ylabel('PlateLocHeight')
-        
-        # Add Count Labels for 'Take' Plots
-        if swing == 'Take':
-            for _, row in side_data.iterrows():
-                axes[i].text(
-                    row['Platelocside']-.15,
-                    row['Platelocheight'],
-                    row['Count'],
-                    fontsize=8,
-                    color='darkblue',  # Custom label color
-                    ha='center',
-                    va='center',
-                    zorder=3  # Ensure text is above other elements
-                )
 
         # Remove any auto-generated legend
         if axes[i].get_legend() is not None:
@@ -521,9 +523,10 @@ def plot_pitch_locations_by_playresult(data):
     cbar.ax.tick_params(labelcolor='white')
     
     # Adjust spacing between rows and columns
-    plt.subplots_adjust(hspace=0.4)  # More space vertically and horizontally
+    plt.subplots_adjust(hspace=0.4)  # More space vertically
     
     st.pyplot(fig)
+
 
 
 
