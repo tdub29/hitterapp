@@ -248,24 +248,39 @@ df['Count'] = df['Balls'].astype(str) + '-' + df['Strikes'].astype(str)
 
 # Map Plate Zones based on PlatelocSide and PlatelocHeight
 def map_plate_zone(row):
+    """
+    Map pitch location to plate zones (Heart, Shadow, Chase, Waste) based on Platelocside and Platelocheight in feet.
+    """
     side = row['Platelocside']
     height = row['Platelocheight']
 
-    # Heart Zone
-    if -6.7 <= side <= 6.7 and 22 <= height <= 38:
+    # Convert inches to feet for thresholds
+    HEART_SIDE = (-0.56, 0.56)  # 6.7 inches → ~0.56 feet
+    HEART_HEIGHT = (1.83, 3.17)  # 22-38 inches → 1.83-3.17 feet
+
+    SHADOW_SIDE = (-1.11, 1.11)  # 13.3 inches → ~1.11 feet
+    SHADOW_HEIGHT = (1.17, 3.83)  # 14-46 inches → 1.17-3.83 feet
+
+    CHASE_SIDE = (-1.67, 1.67)  # 20 inches → ~1.67 feet
+    CHASE_HEIGHT = (0.5, 4.33)  # 6-52 inches → 0.5-4.33 feet
+
+    WASTE_SIDE = (-2.5, 2.5)  # Beyond Chase Zone (arbitrary large range)
+    WASTE_HEIGHT = (0.0, 5.0)  # Below 6 inches (0.5 feet) or above 52 inches (4.33 feet)
+
+    # Map to zones
+    if HEART_SIDE[0] <= side <= HEART_SIDE[1] and HEART_HEIGHT[0] <= height <= HEART_HEIGHT[1]:
         return 'Heart'
-    # Shadow Zone
-    elif -13.3 <= side <= 13.3 and 14 <= height <= 46:
+    elif SHADOW_SIDE[0] <= side <= SHADOW_SIDE[1] and SHADOW_HEIGHT[0] <= height <= SHADOW_HEIGHT[1]:
         return 'Shadow'
-    # Chase Zone
-    elif -20 <= side <= 20 and 6 <= height <= 52:
+    elif CHASE_SIDE[0] <= side <= CHASE_SIDE[1] and CHASE_HEIGHT[0] <= height <= CHASE_HEIGHT[1]:
         return 'Chase'
-    # Waste Zone
     else:
         return 'Waste'
 
+
 # Apply the mapping function to the dataframe
 df['PlateZone'] = df.apply(map_plate_zone, axis=1)
+
 
 
 
