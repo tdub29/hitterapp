@@ -299,19 +299,19 @@ df.rename(columns={'Strikes': 'strikes', 'Balls': 'balls'}, inplace=True)
 
 # 1) Split
 df_no_swing = df[df['Swing'] == 'Take'].dropna(
-    subset=['Platelocside','Platelocheight','strikes','strikes']
+    subset=['Platelocside','Platelocheight','strikes','balls']
 ).copy()
 
 df_swing = df[df['Swing'] == 'Swing'].dropna(
-    subset=['Platelocside','Platelocheight','strikes','strikes']
+    subset=['Platelocside','Platelocheight','strikes','balls']
 ).copy()
 
 # 3) Predict with each model using the DataFrame
 df_no_swing['decision_rv'] = model_no_swing.predict(
-    df_no_swing[['Platelocside','Platelocheight','strikes','strikes']]
+    df_no_swing[['Platelocside','Platelocheight','strikes','balls']]
 )
 df_swing['decision_rv'] = model_swing.predict(
-    df_swing[['Platelocside','Platelocheight','strikes','strikes']]
+    df_swing[['Platelocside','Platelocheight','strikes','balls']]
 )
 
 # 4) Merge predictions back to the main df
@@ -501,7 +501,7 @@ def plot_pitch_locations_by_playresult(data):
     # Ensure Swing and xSLG fields exist and are properly formatted
     data['Swing'] = data['Swing'].astype('category')
     data['xSLG'] = pd.to_numeric(data['xSLG'].fillna(0), errors='coerce').fillna(0)
-    data['Count'] = data['strikes'].astype(str) + '-' + data['strikes'].astype(str)
+    data['Count'] = data['balls'].astype(str) + '-' + data['strikes'].astype(str)
     
     # Define pitcher sides and swing types
     pitcher_sides = ['R', 'L']
