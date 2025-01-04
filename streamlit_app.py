@@ -302,13 +302,13 @@ df_swing = df[df['Swing'] == 'Swing'].dropna(
     subset=['Platelocside','Platelocheight','Strikes','Balls']
 ).copy()
 
-# 2) Convert to DMatrix
-dmat_no_swing = xgb.DMatrix(df_no_swing[['Platelocside','Platelocheight','Strikes','Balls']])
-dmat_swing    = xgb.DMatrix(df_swing[['Platelocside','Platelocheight','Strikes','Balls']])
-
-# 3) Predict with each model
-df_no_swing['decision_rv'] = model_no_swing.predict(dmat_no_swing)
-df_swing['decision_rv']    = model_swing.predict(dmat_swing)
+# 3) Predict with each model using the DataFrame
+df_no_swing['decision_rv'] = model_no_swing.predict(
+    df_no_swing[['Platelocside','Platelocheight','Strikes','Balls']]
+)
+df_swing['decision_rv'] = model_swing.predict(
+    df_swing[['Platelocside','Platelocheight','Strikes','Balls']]
+)
 
 # 4) Merge predictions back to the main df
 #    If you have a unique pitch identifier (e.g. 'Pitchuid'), merge on that:
