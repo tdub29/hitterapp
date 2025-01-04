@@ -28,6 +28,18 @@ booster.load_model('xSLG_model.json')
 best_model = xgb.XGBRegressor()
 best_model._Booster = booster  # Assign the booster to the regressor
 
+# 1) Load the No-Swing model (JSON)
+no_swing_booster = xgb.Booster()
+no_swing_booster.load_model('no_swing_model.json')
+model_no_swing = xgb.XGBRegressor()
+model_no_swing._Booster = no_swing_booster
+
+# 2) Load the Swing model (JSON)
+swing_booster = xgb.Booster()
+swing_booster.load_model('swing_model.json')
+model_swing = xgb.XGBRegressor()
+model_swing._Booster = swing_booster
+
 
 # Define custom color palette
 kde_min = '#236abe'
@@ -280,6 +292,48 @@ def map_plate_zone(row):
 
 # Apply the mapping function to the dataframe
 df['PlateZone'] = df.apply(map_plate_zone, axis=1)
+
+# 1) Split
+df_no_swing = df[df['Swing'] == 'Take'].dropna(
+    subset=['Platelocside','Platelocheight','Strikes','Balls']
+).copy()
+
+df_swing = df[df['Swing'] == 'Swing'].dropna(
+    subset=['Platelocside','Platelocheight','Strikes','Balls']
+).copy()
+
+# 2) Convert to DMatrix
+dmat_no_swing = xgb.DMatrix(df_no_swing[['Platelocside','Platelocheight','Strikes','Balls']])
+dmat_swing    = xgb.DMatrix(df_swing[['Platelocside','Platelocheight','Strikes','Balls']])
+
+# 3) Predict with each model
+df_no_swing['decision_rv'] = model_no_swing.predict(dmat_no_swing)
+df_swing['decision_rv']    = model_swing.predict(dmat_swing)
+
+# 4) Merge predictions back to the main df
+#    If you have a unique pitch identifier (e.g. 'Pitchuid'), merge on that:
+#    We'll do a left merge so all rows remain, even if no predictions are found.
+if 'Pitchuid' in df.columns:
+    # Extract only the columns we need for merging
+    df_no_swing_merge = df_no_swing[['Pitchuid','decision_rv']]
+    df_swing_merge    = df_swing[['Pitchuid','decision_rv']]
+
+    # Rename to avoid overwriting
+    df_no_swing_merge = df_no_swing_merge.rename(columns={'decision_rv': 'decision_rv_no_swing'})
+    df_swing_merge    = df_swing_merge.rename(columns={'decision_rv': 'decision_rv_swing'})
+
+    df = df.merge(df_no_swing_merge, on='Pitchuid', how='left')
+    df = df.merge(df_swing_merge, on='Pitchuid', how='left')
+
+    # Combine them into a single 'decision_rv' column if desired:
+    # e.g. if row is no-swing, 'decision_rv_no_swing' is valid, else 'decision_rv_swing'
+    # We'll just fill one from the other:
+    df['decision_rv'] = df['decision_rv_no_swing'].combine_first(df['decision_rv_swing'])
+
+else:
+    # If no unique ID, you might do a concat back approach. That is trickier
+    # because you must align on index or multi-column merges. For now, we assume 'Pitchuid' exists.
+    pass
 
 
 
@@ -606,15 +660,16 @@ def create_spray_chart(data, ax):
 
 def display_hitter_metrics(all_pitches):
     """
-    Displays hitter metrics in a tabular format on a Streamlit app.
-    
-    Args:
-        filtered_data (pd.DataFrame): Filtered dataset containing hitter data.
+    Displays hitter metrics in a tabular format on a Streamlit app,
+    AND includes No-Swing, Swing, and Overall decision values (20–80).
     """
     if all_pitches.empty:
         st.write("No data available for the selected filters.")
         return
     
+    ########################
+    # (A) Your Existing Code
+    ########################
     grouped = all_pitches.groupby('Batter')
     rows = []
 
@@ -659,7 +714,6 @@ def display_hitter_metrics(all_pitches):
             group_data.loc[group_data['Swing'] == 'Swing', 'xSLG'].mean()
             if 'xSLG' in group_data.columns else np.nan
         )
-
 
         # Plate Discipline Metrics
         o_swing = ((group_data['Zone'] == 'Out') & (group_data['Swing'] == 'Swing')).sum()
@@ -719,7 +773,90 @@ def display_hitter_metrics(all_pitches):
         })
 
     metrics_df = pd.DataFrame(rows)
-    st.dataframe(metrics_df)
+
+    ###############################
+    # (B) Compute Decision Values
+    ###############################
+    # 1) We'll define a small helper:
+    def apply_20_80_scale(mean_pred, mu, std):
+        if pd.isna(mean_pred):
+            return np.nan
+        if std == 0:
+            return 50  # fallback if no variance
+        z = (mean_pred - mu) / std
+        return np.clip(50 + 10*z, 20, 80)
+
+    # 2) Group by Batter for No-Swing, Swing, and Overall
+    #    We assume your code already created 'y_pred_no_swing' (for Take),
+    #    'y_pred_swing' (for Swing), and a combined 'y_pred' if desired.
+
+    # No-Swing subset
+    df_no_swing_sub = all_pitches[all_pitches['Swing'] == 'Take']
+    df_no_swing_group = df_no_swing_sub.groupby('Batter').agg(
+        mean_pred_no_swing=('y_pred_no_swing','mean'),
+        pitches_no_swing=('y_pred_no_swing','count')
+    ).reset_index()
+
+    # Swing subset
+    df_swing_sub = all_pitches[all_pitches['Swing'] == 'Swing']
+    df_swing_group = df_swing_sub.groupby('Batter').agg(
+        mean_pred_swing=('y_pred_swing','mean'),
+        pitches_swing=('y_pred_swing','count')
+    ).reset_index()
+
+    # Overall subset
+    # If you assigned a combined 'y_pred' to every pitch, we can just average that:
+    df_overall_group = all_pitches.groupby('Batter').agg(
+        mean_pred_overall=('y_pred','mean'),
+        pitches_overall=('y_pred','count')
+    ).reset_index()
+
+    # 3) Merge them side-by-side
+    df_dv_merged = pd.merge(df_no_swing_group, df_swing_group, on='Batter', how='outer')
+    df_dv_merged = pd.merge(df_dv_merged, df_overall_group, on='Batter', how='outer')
+
+    # (Optional) Filter out players with <100 total pitches
+    df_dv_merged = df_dv_merged[df_dv_merged['pitches_overall'] >= 100]
+
+    # 4) Reference stats from your big dataset
+    #    (You must fill in real values here!)
+    mu_no_swing  = 0.0119
+    std_no_swing = 0.0199
+    mu_swing     = -0.0194
+    std_swing    = 0.0129
+    mu_overall   = -0.0032
+    std_overall  = 0.0130
+
+
+    # 5) Apply the 20–80 scale
+    df_dv_merged['decision_value_no_swing'] = df_dv_merged['mean_pred_no_swing'].apply(
+        lambda x: apply_20_80_scale(x, mu_no_swing, std_no_swing)
+    )
+    df_dv_merged['decision_value_swing'] = df_dv_merged['mean_pred_swing'].apply(
+        lambda x: apply_20_80_scale(x, mu_swing, std_swing)
+    )
+    df_dv_merged['decision_value_overall'] = df_dv_merged['mean_pred_overall'].apply(
+        lambda x: apply_20_80_scale(x, mu_overall, std_overall)
+    )
+
+    # 6) Merge the decision-value subset into 'metrics_df'
+    #    We'll keep it separate to avoid overwriting your existing columns
+    final_df = metrics_df.merge(
+        df_dv_merged[[
+            'Batter',
+            'pitches_no_swing','pitches_swing','pitches_overall',
+            'decision_value_no_swing','decision_value_swing','decision_value_overall'
+        ]],
+        on='Batter',
+        how='left'
+    )
+
+    ###############################
+    # (C) Display the combined table
+    ###############################
+    st.write("### Hitter Metrics + Decision Values (20–80)")
+    st.dataframe(final_df.fillna('N/A'))
+
 
 def calculate_zone_metrics(data):
     """
