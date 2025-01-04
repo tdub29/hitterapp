@@ -78,7 +78,7 @@ df = pd.read_csv(file_path)
 # Standardize column capitalization
 df.columns = [col.strip().capitalize() for col in df.columns]
 
-# Ensure 'Balls' and 'Strikes' columns are numeric
+# Ensure 'Balls' and 'strikes' columns are numeric
 df['Balls'] = pd.to_numeric(df['Balls'], errors='coerce')
 df['Strikes'] = pd.to_numeric(df['Strikes'], errors='coerce')
 
@@ -293,21 +293,25 @@ def map_plate_zone(row):
 # Apply the mapping function to the dataframe
 df['PlateZone'] = df.apply(map_plate_zone, axis=1)
 
+# First, rename the columns
+df.rename(columns={'Strikes': 'strikes', 'Balls': 'balls'}, inplace=True)
+
+
 # 1) Split
 df_no_swing = df[df['Swing'] == 'Take'].dropna(
-    subset=['Platelocside','Platelocheight','Strikes','Balls']
+    subset=['Platelocside','Platelocheight','strikes','strikes']
 ).copy()
 
 df_swing = df[df['Swing'] == 'Swing'].dropna(
-    subset=['Platelocside','Platelocheight','Strikes','Balls']
+    subset=['Platelocside','Platelocheight','strikes','strikes']
 ).copy()
 
 # 3) Predict with each model using the DataFrame
 df_no_swing['decision_rv'] = model_no_swing.predict(
-    df_no_swing[['Platelocside','Platelocheight','Strikes','Balls']]
+    df_no_swing[['Platelocside','Platelocheight','strikes','strikes']]
 )
 df_swing['decision_rv'] = model_swing.predict(
-    df_swing[['Platelocside','Platelocheight','Strikes','Balls']]
+    df_swing[['Platelocside','Platelocheight','strikes','strikes']]
 )
 
 # 4) Merge predictions back to the main df
@@ -497,7 +501,7 @@ def plot_pitch_locations_by_playresult(data):
     # Ensure Swing and xSLG fields exist and are properly formatted
     data['Swing'] = data['Swing'].astype('category')
     data['xSLG'] = pd.to_numeric(data['xSLG'].fillna(0), errors='coerce').fillna(0)
-    data['Count'] = data['Balls'].astype(str) + '-' + data['Strikes'].astype(str)
+    data['Count'] = data['strikes'].astype(str) + '-' + data['strikes'].astype(str)
     
     # Define pitcher sides and swing types
     pitcher_sides = ['R', 'L']
