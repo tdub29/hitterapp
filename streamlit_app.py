@@ -30,13 +30,13 @@ best_model._Booster = booster  # Assign the booster to the regressor
 
 # 1) Load the No-Swing model (JSON)
 no_swing_booster = xgb.Booster()
-no_swing_booster.load_model('no_swing_model.json')
+no_swing_booster.load_model('model_no_swing.json')
 model_no_swing = xgb.XGBRegressor()
 model_no_swing._Booster = no_swing_booster
 
 # 2) Load the Swing model (JSON)
 swing_booster = xgb.Booster()
-swing_booster.load_model('swing_model.json')
+swing_booster.load_model('model_swing.json')
 model_swing = xgb.XGBRegressor()
 model_swing._Booster = swing_booster
 
