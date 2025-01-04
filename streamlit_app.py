@@ -820,7 +820,7 @@ def display_hitter_metrics(all_pitches):
     df_dv_merged = pd.merge(df_dv_merged, df_overall_group, on='Batter', how='outer')
 
     # (Optional) Filter out players with <100 total pitches
-    df_dv_merged = df_dv_merged[df_dv_merged['pitches_overall'] >= 100]
+    #df_dv_merged = df_dv_merged[df_dv_merged['pitches_overall'] >= 100]
 
     # 4) Reference stats from your big dataset
     #    (You must fill in real values here!)
