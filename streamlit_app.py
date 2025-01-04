@@ -797,22 +797,22 @@ def display_hitter_metrics(all_pitches):
     # No-Swing subset
     df_no_swing_sub = all_pitches[all_pitches['Swing'] == 'Take']
     df_no_swing_group = df_no_swing_sub.groupby('Batter').agg(
-        mean_pred_no_swing=('y_pred_no_swing','mean'),
-        pitches_no_swing=('y_pred_no_swing','count')
+        mean_pred_no_swing=('decision_rv_no_swing','mean'),
+        pitches_no_swing=('decision_rv_no_swing','count')
     ).reset_index()
 
     # Swing subset
     df_swing_sub = all_pitches[all_pitches['Swing'] == 'Swing']
     df_swing_group = df_swing_sub.groupby('Batter').agg(
-        mean_pred_swing=('y_pred_swing','mean'),
-        pitches_swing=('y_pred_swing','count')
+        mean_pred_swing=('decision_rv_swing','mean'),
+        pitches_swing=('decision_rv_swing','count')
     ).reset_index()
 
     # Overall subset
     # If you assigned a combined 'y_pred' to every pitch, we can just average that:
     df_overall_group = all_pitches.groupby('Batter').agg(
-        mean_pred_overall=('y_pred','mean'),
-        pitches_overall=('y_pred','count')
+        mean_pred_overall=('decision_rv','mean'),
+        pitches_overall=('decision_rv','count')
     ).reset_index()
 
     # 3) Merge them side-by-side
