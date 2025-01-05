@@ -700,11 +700,26 @@ def plot_pitch_locations_by_hand_and_ypred(data):
     cbar.set_label("decision_rv", fontsize=12)
 
     # 5) Add a small inset plot in the bottom-right corner (below legend)
-    inset_ax = fig.add_axes([0.8, 0.15, 0.12, 0.12])  # [left, bottom, width, height]
-    inset_ax.plot([0,1], [0,1], color='red')          # Example: small diagonal line
-    inset_ax.set_title("Inset", fontsize=8)
-    inset_ax.axis('equal')
-    inset_ax.tick_params(labelsize=6)
+    handles = []
+    for event_name, marker_shape in shape_map.items():
+        # Create an invisible Line2D with the right marker and label
+        handle = mlines.Line2D(
+            [], [], 
+            color='black', 
+            marker=marker_shape, 
+            markersize=8, 
+            label=event_name, 
+            linestyle='None'  # no connecting line
+        )
+        handles.append(handle)
+    
+    # Add the legend to the bottom-right corner of the figure
+    fig.legend(
+        handles=handles,
+        loc='lower right',  # bottom right of the entire figure
+        frameon=True,
+        title='Shapes'
+    )
 
     st.pyplot(fig)
 
