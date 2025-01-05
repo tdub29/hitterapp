@@ -1026,8 +1026,18 @@ def calculate_zone_metrics(data):
     # Convert results to DataFrame
     zone_metrics_df = pd.DataFrame(zone_metrics)
     
-    # Display in Streamlit
+    # Narrow columns via CSS
+    narrow_style = """
+    <style>
+    table td, table th {
+        width: 60px !important;   /* set narrower width */
+        text-align: center !important;
+    }
+    </style>
+    """
+
     st.write("### Zone Metrics Overview")
+    st.markdown(narrow_style, unsafe_allow_html=True)
     st.dataframe(zone_metrics_df)
 
 st.sidebar.title("Navigation")
