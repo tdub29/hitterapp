@@ -715,12 +715,18 @@ def plot_pitch_locations_by_hand_and_ypred(data):
         handles.append(handle)
     
     # Add the legend to the bottom-right corner of the figure
-    fig.legend(
+    legend_obj = fig.legend(
         handles=handles,
         loc='lower right',  # bottom right of the entire figure
         frameon=True,
         title='Shapes'
     )
+    
+    # Make legend text dark blue
+    legend_obj.set_title('Shapes', prop={'color': 'darkblue'})
+    for text_obj in legend_obj.get_texts():
+        text_obj.set_color('darkblue')
+
 
     st.pyplot(fig)
 
