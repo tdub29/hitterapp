@@ -843,6 +843,11 @@ def display_hitter_metrics(all_pitches):
         lambda x: apply_20_80_scale(x, mu_overall, std_overall)
     )
 
+    # Round each to 1 decimal place
+    df_dv_merged['decision_value_no_swing'] = df_dv_merged['decision_value_no_swing'].round(1)
+    df_dv_merged['decision_value_swing']    = df_dv_merged['decision_value_swing'].round(1)
+    df_dv_merged['decision_value_overall']  = df_dv_merged['decision_value_overall'].round(1)
+
     # 6) Merge the decision-value subset into 'metrics_df'
     #    We'll keep it separate to avoid overwriting your existing columns
     final_df = metrics_df.merge(
