@@ -974,7 +974,7 @@ def calculate_zone_metrics(data):
     st.dataframe(zone_metrics_df)
 
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" ,"Spray Chart", "Hitter Metrics",  "Zone Metrics" ,"Raw Data"])
+page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" , "Pitch Locations by Decision Value","Spray Chart", "Hitter Metrics",  "Zone Metrics" ,"Raw Data"])
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
@@ -1024,6 +1024,10 @@ elif page == "Spray Chart":
 elif page == "Pitch Locations by Playresult":
     st.title("Pitch Locations by Playresult")
     plot_pitch_locations_by_playresult(all_pitches)
+
+elif page == "Pitch Locations by Decision Value":
+    st.title("Pitch Locations by Decision Value")
+    plot_pitch_locations_by_hand_and_ypred(all_pitches)
 
 elif page == "Raw Data":
     st.title("Raw Data Display")
