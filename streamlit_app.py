@@ -646,7 +646,7 @@ def plot_pitch_locations_by_hand_and_ypred(data):
             sc = axes[i].scatter(
                 subset_event['Platelocside'],
                 subset_event['Platelocheight'],
-                c=subset_event['y_pred'],
+                c=subset_event['decision_rv'],
                 cmap='coolwarm',
                 marker=marker_style,
                 edgecolor='black',
@@ -662,9 +662,9 @@ def plot_pitch_locations_by_hand_and_ypred(data):
         axes[i].set_xlabel("PlateLocSide")
         axes[i].set_ylabel("PlateLocHeight")
 
-    # Shared colorbar for y_pred
+    # Shared colorbar for decision_rv
     cbar = fig.colorbar(sc, ax=axes.ravel().tolist())
-    cbar.set_label("y_pred", fontsize=12)
+    cbar.set_label("decision_rv", fontsize=12)
 
     st.pyplot(fig)
 
