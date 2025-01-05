@@ -610,26 +610,38 @@ def plot_pitch_locations_by_playresult(data):
 def plot_pitch_locations_by_hand_and_ypred(data):
     """
     Plot pitch locations vs. left- and right-handed pitchers,
-    colored by y_pred, shaped by Event.
+    colored by decision_rv, shaped by Event.
+    Adds zone shading, strike zone rectangle,
+    and an inset plot in the bottom-right corner.
     """
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle, Polygon
 
     if data.empty:
         st.warning("No data available for the selected filters.")
         return
 
-    # Variety of marker symbols for each possible final Event
+    # Marker shapes for final Event values
     shape_map = {
-        'BallCalled': 'o',       # circle
-        'Foul': '^',             # triangle up
-        'StrikeCalled': 's',     # square
-        'StrikeSwinging': 'D',   # diamond
-        'HitByPitch': 'p',       # pentagon
-        'Single': 'v',           # triangle down
-        'Double': '>',           # triangle right
-        'Triple': '<',           # triangle left
-        'HomeRun': '*',          # star
-        'Out': 'X',              # big 'X'
-        'Undefined': '8'         # octagon
+        'BallCalled': 'o',
+        'Foul': '^',
+        'StrikeCalled': 's',
+        'StrikeSwinging': 'D',
+        'HitByPitch': 'p',
+        'Single': 'v',
+        'Double': '>',
+        'Triple': '<',
+        'HomeRun': '*',
+        'Out': 'X',
+        'Undefined': '8'
+    }
+
+    # Zone definitions
+    zone_definitions = {
+        'Heart':  {'x_range': (-0.56, 0.56), 'y_range': (1.83, 3.17), 'color': '#7CFC00', 'alpha': 0.3},
+        'Shadow': {'x_range': (-1.11, 1.11), 'y_range': (1.17, 3.83), 'color': '#FFD700', 'alpha': 0.2},
+        'Chase':  {'x_range': (-1.67, 1.67), 'y_range': (0.5, 4.33),  'color': '#FFA07A', 'alpha': 0.15},
+        'Waste':  {'x_range': (-2.5, 2.5),   'y_range': (0.0, 5.0),   'color': '#FF6347', 'alpha': 0.1}
     }
 
     pitcher_sides = ['R', 'L']
@@ -638,23 +650,44 @@ def plot_pitch_locations_by_hand_and_ypred(data):
     for i, side in enumerate(pitcher_sides):
         subset = data[data['Pitcherhand'] == side]
 
-        # For each unique Event, use a specific marker
+        # 1) Plot each Event with a specific marker
         for event_type in subset['Event'].unique():
-            subset_event = subset[subset['Event'] == event_type]
-            marker_style = shape_map.get(event_type, 'o')  # default to circle if not found
-
+            sub_e = subset[subset['Event'] == event_type]
+            marker_style = shape_map.get(event_type, 'o')  # default circle
             sc = axes[i].scatter(
-                subset_event['Platelocside'],
-                subset_event['Platelocheight'],
-                c=subset_event['decision_rv'],
+                sub_e['Platelocside'],
+                sub_e['Platelocheight'],
+                c=sub_e['decision_rv'],
                 cmap='coolwarm',
                 marker=marker_style,
                 edgecolor='black',
-                vmin=-0.2,   # adjust color scale if needed
+                vmin=-0.2,   # adjust color scale as needed
                 vmax=0.2,
                 s=80,
                 alpha=0.7
             )
+
+        # 2) Add zone shading (Heart/Shadow/Chase/Waste)
+        for zone, props in zone_definitions.items():
+            axes[i].add_patch(Rectangle(
+                (props['x_range'][0], props['y_range'][0]),
+                props['x_range'][1] - props['x_range'][0],
+                props['y_range'][1] - props['y_range'][0],
+                edgecolor='none',
+                facecolor=props['color'],
+                alpha=props['alpha'],
+                zorder=0
+            ))
+
+        # 3) Add the strike zone rectangle
+        axes[i].add_patch(Rectangle(
+            (-0.83, 1.5),
+            1.66,   # width
+            2.0,    # height
+            edgecolor='black',
+            facecolor='none',
+            lw=2
+        ))
 
         axes[i].set_title(f"Pitcher Side: {side}")
         axes[i].set_xlim(-2.5, 2.5)
@@ -662,11 +695,19 @@ def plot_pitch_locations_by_hand_and_ypred(data):
         axes[i].set_xlabel("PlateLocSide")
         axes[i].set_ylabel("PlateLocHeight")
 
-    # Shared colorbar for decision_rv
+    # 4) Add a shared colorbar for decision_rv
     cbar = fig.colorbar(sc, ax=axes.ravel().tolist())
     cbar.set_label("decision_rv", fontsize=12)
 
+    # 5) Add a small inset plot in the bottom-right corner (below legend)
+    inset_ax = fig.add_axes([0.8, 0.15, 0.12, 0.12])  # [left, bottom, width, height]
+    inset_ax.plot([0,1], [0,1], color='red')          # Example: small diagonal line
+    inset_ax.set_title("Inset", fontsize=8)
+    inset_ax.axis('equal')
+    inset_ax.tick_params(labelsize=6)
+
     st.pyplot(fig)
+
 
 
 
