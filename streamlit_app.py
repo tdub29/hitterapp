@@ -201,18 +201,19 @@ count_option_to_column = {
 }
 
 df['Event'] = np.where(
-    df['Pitchcall'] == 'InPlay',
+    df['Playresult'].isin(['Undefined', 'StolenBase', 'CaughtStealing']),
     np.where(
-        df['Playresult'] == 'Error',
-        df['Taggedhittype'],  # Use Taggedpitchtype if Playresult is 'Error'
+        df['Pitchcall'].eq('BallInDirt'),
+        'BallCalled',
         np.where(
-            df['Playresult'] == 'Out',
-            'Out: ' + df['Taggedhittype'] ,  # Concatenate Taggedpitchtype with "Out"
-            df['Playresult']  # Otherwise, use Playresult
+            df['Pitchcall'].str.contains('Foul', case=False, na=False),
+            'Foul',
+            df['Pitchcall']
         )
     ),
-    df['Pitchcall']  # Default to Pitchcall if not 'InPlay'
+    df['Playresult']
 )
+
 
 # Create 'Swing' column based on Exitspeed and Pitchcall
 df['Swing'] = np.where(
@@ -604,6 +605,67 @@ def plot_pitch_locations_by_playresult(data):
     # Adjust spacing between rows and columns
     plt.subplots_adjust(hspace=0.4)  # More space vertically
     
+    st.pyplot(fig)
+
+def plot_pitch_locations_by_hand_and_ypred(data):
+    """
+    Plot pitch locations vs. left- and right-handed pitchers,
+    colored by y_pred, shaped by Event.
+    """
+
+    if data.empty:
+        st.warning("No data available for the selected filters.")
+        return
+
+    # Variety of marker symbols for each possible final Event
+    shape_map = {
+        'BallCalled': 'o',       # circle
+        'Foul': '^',             # triangle up
+        'StrikeCalled': 's',     # square
+        'StrikeSwinging': 'D',   # diamond
+        'HitByPitch': 'p',       # pentagon
+        'Single': 'v',           # triangle down
+        'Double': '>',           # triangle right
+        'Triple': '<',           # triangle left
+        'HomeRun': '*',          # star
+        'Out': 'X',              # big 'X'
+        'Undefined': '8'         # octagon
+    }
+
+    pitcher_sides = ['R', 'L']
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6), sharex=True, sharey=True)
+
+    for i, side in enumerate(pitcher_sides):
+        subset = data[data['Pitcherhand'] == side]
+
+        # For each unique Event, use a specific marker
+        for event_type in subset['Event'].unique():
+            subset_event = subset[subset['Event'] == event_type]
+            marker_style = shape_map.get(event_type, 'o')  # default to circle if not found
+
+            sc = axes[i].scatter(
+                subset_event['Platelocside'],
+                subset_event['Platelocheight'],
+                c=subset_event['y_pred'],
+                cmap='coolwarm',
+                marker=marker_style,
+                edgecolor='black',
+                vmin=-0.2,   # adjust color scale if needed
+                vmax=0.2,
+                s=80,
+                alpha=0.7
+            )
+
+        axes[i].set_title(f"Pitcher Side: {side}")
+        axes[i].set_xlim(-2.5, 2.5)
+        axes[i].set_ylim(0, 5)
+        axes[i].set_xlabel("PlateLocSide")
+        axes[i].set_ylabel("PlateLocHeight")
+
+    # Shared colorbar for y_pred
+    cbar = fig.colorbar(sc, ax=axes.ravel().tolist())
+    cbar.set_label("y_pred", fontsize=12)
+
     st.pyplot(fig)
 
 
