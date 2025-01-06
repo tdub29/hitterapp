@@ -706,7 +706,7 @@ def plot_pitch_locations_by_hand_and_ypred(data):
         # Create an invisible Line2D with the right marker and label
         handle = mlines.Line2D(
             [], [], 
-            color='black', 
+            color='darkblue', 
             marker=marker_shape, 
             markersize=8, 
             label=event_name, 
