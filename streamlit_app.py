@@ -722,8 +722,10 @@ def plot_pitch_locations_by_hand_and_ypred(data):
         title='Shapes'
     )
     
-    # Make legend text dark blue
-    legend_obj.set_title('Shapes', prop={'color': 'darkblue'})
+    # Set the title color
+    legend_obj.get_title().set_color('darkblue')
+    
+    # Set the color for all legend labels
     for text_obj in legend_obj.get_texts():
         text_obj.set_color('darkblue')
 
