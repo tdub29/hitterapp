@@ -717,7 +717,7 @@ def plot_pitch_locations_by_hand_and_ypred(data):
     # Add the legend to the bottom-right corner of the figure
     legend_obj = fig.legend(
         handles=handles,
-        loc='middle right',  # bottom right of the entire figure
+        loc='right',  # bottom right of the entire figure
         frameon=True,
         title='Shapes'
     )
