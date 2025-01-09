@@ -971,7 +971,7 @@ def display_hitter_metrics(all_pitches):
     )
 
     # Round each to 1 decimal place
-    df_dv_merged['decision_value_no_swing'] = df_dv_merged['decision_value_no_swing'].round(1)
+    df_dv_merged['decision_value_take'] = df_dv_merged['decision_value_no_swing'].round(1)
     df_dv_merged['decision_value_swing']    = df_dv_merged['decision_value_swing'].round(1)
     df_dv_merged['decision_value_overall']  = df_dv_merged['decision_value_overall'].round(1)
 
@@ -981,10 +981,10 @@ def display_hitter_metrics(all_pitches):
         df_dv_merged[[
             'Batter',
             'pitches_no_swing','pitches_swing','pitches_overall',
-            'decision_value_no_swing','decision_value_swing','decision_value_overall'
+            'decision_value_take','decision_value_swing','decision_value_overall'
         ]],
         on='Batter',
-        how='left'
+        how='right'
     )
 
     ###############################
