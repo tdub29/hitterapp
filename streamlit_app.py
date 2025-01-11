@@ -741,62 +741,57 @@ def plot_pitch_locations_by_hand_and_ypred(data):
 
 
 def plot_kde_comparison(data):
-    """
-    Compare a player's batted ball distribution to the league baseline KDE with axis annotations.
-    Assumes `league_kde`, `grid_x`, and `grid_y` are globally accessible.
-    """
     f_league_path = "league_kde_earliest.npy"
     x_grid_path = "grid_x.npy"
     y_grid_path = "grid_y.npy"
     
-    # Load the .npy files directly
-    f_league = np.load(f_league_path, allow_pickle=True)
-    X = np.load(x_grid_path, allow_pickle=True)
-    Y = np.load(y_grid_path, allow_pickle=True)
+    try:
+        # Load .npy files
+        f_league = np.load(f_league_path, allow_pickle=True)
+        X = np.load(x_grid_path, allow_pickle=True)
+        Y = np.load(y_grid_path, allow_pickle=True)
+    except FileNotFoundError as e:
+        st.error(f"File not found: {e}")
+        return
+    except Exception as e:
+        st.error(f"Error loading .npy files: {e}")
+        return
 
+    # Check data validity
     if data.empty or 'Direction' not in data.columns or 'Angle' not in data.columns:
         st.error("The dataset is missing required columns ('Direction', 'Angle').")
         return
 
-    # Compute KDE for the pre-filtered player data
-    x_loc_player = data['Direction']
-    y_loc_player = data['Angle']
-    values_player = np.vstack([x_loc_player, y_loc_player])
-    kernel_player = gaussian_kde(values_player)
-    f_player = np.reshape(kernel_player(np.vstack([X.ravel(), Y.ravel()])).T, X.shape)
-    f_player = f_player * (100 / f_player.sum())  # Normalize to sum to 100
+    try:
+        # Compute KDE for player data
+        x_loc_player = data['Direction']
+        y_loc_player = data['Angle']
+        values_player = np.vstack([x_loc_player, y_loc_player])
+        kernel_player = gaussian_kde(values_player)
+        f_player = np.reshape(kernel_player(np.vstack([X.ravel(), Y.ravel()])).T, X.shape)
+        f_player = f_player * (100 / f_player.sum())  # Normalize
+    except Exception as e:
+        st.error(f"Error in KDE computation: {e}")
+        return
 
-    # Calculate difference from league baseline
-    kde_difference = f_player - f_league
+    try:
+        # Calculate difference from league baseline
+        kde_difference = f_player - f_league
 
-    # Plot the KDE difference
-    fig, ax = plt.subplots(figsize=(7, 7))
-    levels = np.linspace(-10, 10, 21)  # Contour levels
-    cfset = ax.contourf(X, Y, kde_difference, levels=levels, cmap='coolwarm', extend='both')
+        # Plot KDE difference
+        fig, ax = plt.subplots(figsize=(7, 7))
+        levels = np.linspace(-10, 10, 21)  # Contour levels
+        cfset = ax.contourf(X, Y, kde_difference, levels=levels, cmap='coolwarm', extend='both')
+        ax.set_title("Batted Ball Difference", fontsize=16)
 
-    # Add axis annotations
-    x_ticks = [0, 30, 60, 90]
-    x_labels = ['Pull', 'Center', 'Oppo']
-    for label, pos0, pos1 in zip(x_labels, x_ticks[:-1], x_ticks[1:]):
-        ax.text((pos0 + pos1) / 2, -40, label, ha='center', va='top', fontsize=12, transform=ax.get_xaxis_transform())
+        # Add colorbar
+        cbar = plt.colorbar(cfset, ax=ax)
+        cbar.set_label("Difference from League KDE (%)")
 
-    y_ticks = [-30, 10, 25, 50, 60]
-    y_labels = ['Ground Ball', 'Line Drive', 'Fly Ball', 'Pop Up']
-    for label, pos0, pos1 in zip(y_labels, y_ticks[:-1], y_ticks[1:]):
-        ax.text(-10, (pos0 + pos1) / 2, label, ha='right', va='center', fontsize=12, transform=ax.get_yaxis_transform())
+        st.pyplot(fig)
+    except Exception as e:
+        st.error(f"Error in plotting: {e}")
 
-    # Formatting the plot
-    ax.set_xlim(0, 90)
-    ax.set_ylim(-30, 60)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_title("Batted Ball Difference", fontsize=16)
-
-    # Add colorbar
-    cbar = plt.colorbar(cfset, ax=ax)
-    cbar.set_label("Difference from League KDE (%)")
-
-    st.pyplot(fig)
 
 
 
