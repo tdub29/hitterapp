@@ -27,6 +27,9 @@ try:
 except ImportError as e:
     print(f"Error importing gaussian_kde: {e}")
 
+import matplotlib as mpl
+
+
 
 
 
