@@ -778,15 +778,18 @@ def plot_kde_comparison(data):
         # Calculate difference from league baseline
         kde_difference = f_player - f_league
 
-        # Plot KDE difference
+        # Plot KDE difference with discrete shading
         fig, ax = plt.subplots(figsize=(7, 7))
-        levels = np.linspace(-10, 10, 21)  # Contour levels
-        cfset = ax.contourf(X, Y, kde_difference, levels=levels, cmap='coolwarm', extend='both')
+        levels = list(range(-13, 14, 2))  # Discrete levels
+        cfset = ax.contourf(X, Y, kde_difference * 1000, levels=levels, cmap='vlag', extend='both')
+        
+        # Add axis annotations
         ax.set_xlim(0, 90)
         ax.set_ylim(-30, 60)
-        ax.set_title("Batted Ball Difference", fontsize=16)
+        ax.set_xticks([])
+        ax.set_yticks([])
 
-        # Add axis labels
+        # Add discrete axis labels
         x_ticks = [0, 30, 60, 90]
         x_labels = ['Pull', 'Center', 'Oppo']
         for label, pos0, pos1 in zip(x_labels, x_ticks[:-1], x_ticks[1:]):
@@ -797,17 +800,23 @@ def plot_kde_comparison(data):
         for label, pos0, pos1 in zip(y_labels, y_ticks[:-1], y_ticks[1:]):
             ax.text(-10, (pos0 + pos1) / 2, label, ha='right', va='center', fontsize=12)
 
-        # Remove ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
+        # Add discrete colorbar
+        sm = plt.cm.ScalarMappable(cmap='vlag', norm=mpl.colors.BoundaryNorm(levels, ncolors=256))
+        sm.set_array([])
+        cbar = fig.colorbar(sm, ax=ax, orientation='vertical', shrink=0.8, pad=0.05)
+        cbar.ax.axis('off')
+        for label, position, color in zip(['Less\nOften', 'Same', 'More\nOften'], [-24, 15, 53.5], 
+                                          [sns.color_palette('vlag', 25)[0], 'k', sns.color_palette('vlag', 25)[-1]]):
+            cbar.ax.text(1.15, position, label, ha='center', va='center', color=color, fontsize=12, transform=ax.get_yaxis_transform())
 
-        # Add colorbar
-        cbar = plt.colorbar(cfset, ax=ax)
-        cbar.set_label("Difference from League KDE (%)")
-
+        # Title and footnotes
+        ax.set_title("Batted Ball Difference", fontsize=16)
+        fig.text(0.5, 0.01, "batted-ball-charts.streamlit.app | Data: Baseball Savant/pybaseball", ha='center', fontsize=8)
+        sns.despine()
         st.pyplot(fig)
     except Exception as e:
         st.error(f"Error in plotting: {e}")
+
 
 
 
