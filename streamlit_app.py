@@ -27,14 +27,7 @@ try:
 except ImportError as e:
     print(f"Error importing gaussian_kde: {e}")
 
-f_league_path = "league_kde_earliest.npy"
-x_grid_path = "grid_x.npy"
-y_grid_path = "grid_y.npy"
 
-# Load the .npy files directly
-f_league = np.load(f_league_path, allow_pickle=True)
-X = np.load(x_grid_path, allow_pickle=True)
-Y = np.load(y_grid_path, allow_pickle=True)
 
 
 booster = xgb.Booster()
@@ -752,7 +745,14 @@ def plot_kde_comparison(data):
     Compare a player's batted ball distribution to the league baseline KDE with axis annotations.
     Assumes `league_kde`, `grid_x`, and `grid_y` are globally accessible.
     """
-    global f_league, X, Y  # Reference the static variables
+    f_league_path = "league_kde_earliest.npy"
+    x_grid_path = "grid_x.npy"
+    y_grid_path = "grid_y.npy"
+    
+    # Load the .npy files directly
+    f_league = np.load(f_league_path, allow_pickle=True)
+    X = np.load(x_grid_path, allow_pickle=True)
+    Y = np.load(y_grid_path, allow_pickle=True)
 
     if data.empty or 'Direction' not in data.columns or 'Angle' not in data.columns:
         st.error("The dataset is missing required columns ('Direction', 'Angle').")
