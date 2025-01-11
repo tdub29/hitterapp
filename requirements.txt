@@ -6,4 +6,4 @@ seaborn
 matplotlib
 pandas
 statsmodels
-scipy
+scipy==1.10.0
