@@ -782,7 +782,24 @@ def plot_kde_comparison(data):
         fig, ax = plt.subplots(figsize=(7, 7))
         levels = np.linspace(-10, 10, 21)  # Contour levels
         cfset = ax.contourf(X, Y, kde_difference, levels=levels, cmap='coolwarm', extend='both')
+        ax.set_xlim(0, 90)
+        ax.set_ylim(-30, 60)
         ax.set_title("Batted Ball Difference", fontsize=16)
+
+        # Add axis labels
+        x_ticks = [0, 30, 60, 90]
+        x_labels = ['Pull', 'Center', 'Oppo']
+        for label, pos0, pos1 in zip(x_labels, x_ticks[:-1], x_ticks[1:]):
+            ax.text((pos0 + pos1) / 2, -35, label, ha='center', va='top', fontsize=12)
+
+        y_ticks = [-30, 10, 25, 50, 60]
+        y_labels = ['Ground Ball', 'Line Drive', 'Fly Ball', 'Pop Up']
+        for label, pos0, pos1 in zip(y_labels, y_ticks[:-1], y_ticks[1:]):
+            ax.text(-10, (pos0 + pos1) / 2, label, ha='right', va='center', fontsize=12)
+
+        # Remove ticks
+        ax.set_xticks([])
+        ax.set_yticks([])
 
         # Add colorbar
         cbar = plt.colorbar(cfset, ax=ax)
