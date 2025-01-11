@@ -732,8 +732,59 @@ def plot_pitch_locations_by_hand_and_ypred(data):
 
     st.pyplot(fig)
 
+def plot_kde_comparison(data, player_name, league_kde, grid_x, grid_y):
+    """
+    Compare a player's batted ball distribution to the league baseline KDE with axis annotations.
+    """
+    if data.empty or 'spray_deg' not in data.columns or 'launch_angle' not in data.columns:
+        st.error("Player data is missing necessary columns ('spray_deg', 'launch_angle').")
+        return
 
+    # Filter player data
+    player_data = data[data['Batter'] == player_name]
+    if player_data.empty:
+        st.warning(f"No data available for {player_name}.")
+        return
 
+    # Compute KDE for player
+    x_loc_player = player_data['Direction']
+    y_loc_player = player_data['Angle']
+    values_player = np.vstack([x_loc_player, y_loc_player])
+    kernel_player = gaussian_kde(values_player)
+    f_player = np.reshape(kernel_player(np.vstack([grid_x.ravel(), grid_y.ravel()])).T, grid_x.shape)
+    f_player = f_player * (100 / f_player.sum())  # Normalize to sum to 100
+
+    # Calculate difference from league baseline
+    kde_difference = f_player - league_kde
+
+    # Plot the KDE difference
+    fig, ax = plt.subplots(figsize=(7, 7))
+    levels = np.linspace(-10, 10, 21)  # Contour levels
+    cfset = ax.contourf(grid_x, grid_y, kde_difference, levels=levels, cmap='coolwarm', extend='both')
+
+    # Add axis annotations
+    x_ticks = [0, 30, 60, 90]
+    x_labels = ['Pull', 'Center', 'Oppo']
+    for label, pos0, pos1 in zip(x_labels, x_ticks[:-1], x_ticks[1:]):
+        ax.text((pos0 + pos1) / 2, -40, label, ha='center', va='top', fontsize=12, transform=ax.get_xaxis_transform())
+
+    y_ticks = [-30, 10, 25, 50, 60]
+    y_labels = ['Ground Ball', 'Line Drive', 'Fly Ball', 'Pop Up']
+    for label, pos0, pos1 in zip(y_labels, y_ticks[:-1], y_ticks[1:]):
+        ax.text(-10, (pos0 + pos1) / 2, label, ha='right', va='center', fontsize=12, transform=ax.get_yaxis_transform())
+
+    # Formatting the plot
+    ax.set_xlim(0, 90)
+    ax.set_ylim(-30, 60)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_title(f"{player_name}'s Batted Ball Difference", fontsize=16)
+
+    # Add colorbar
+    cbar = plt.colorbar(cfset, ax=ax)
+    cbar.set_label("Difference from League KDE (%)")
+
+    st.pyplot(fig)
 
 
 
@@ -1049,7 +1100,7 @@ def calculate_zone_metrics(data):
     st.dataframe(zone_metrics_df)
 
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" , "Pitch Locations by Decision Value","Spray Chart", "Hitter Metrics",  "Zone Metrics" ,"Raw Data"])
+page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult" , "Pitch Locations by Decision Value", "Batted Ball Outcomes","Spray Chart", "Hitter Metrics",  "Zone Metrics" ,"Raw Data"])
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
@@ -1117,6 +1168,17 @@ elif page == "Raw Data":
 elif page == "Hitter Metrics":
     st.title("Hitter Metrics")
     display_hitter_metrics(all_pitches)
+
+elif page == "Batted Ball Outcomes":
+    st.title("Batted Ball Outcomes")
+
+    # Ensure filtered_data contains relevant data
+    if filtered_data.empty:
+        st.warning("No data available for the selected filters.")
+    else:
+        # Plot the baseline comparison
+        plot_kde_comparison(filtered_data, player_name, f_league, X, Y)
+
 
 elif page == "Zone Metrics":
     st.title("Zone Metrics: Heart, Shadow, Chase, Waste")
