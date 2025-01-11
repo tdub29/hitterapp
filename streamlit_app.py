@@ -743,35 +743,33 @@ def plot_pitch_locations_by_hand_and_ypred(data):
 
     st.pyplot(fig)
 
-def plot_kde_comparison(data, player_name, league_kde, grid_x, grid_y):
+
+def plot_kde_comparison(data):
     """
     Compare a player's batted ball distribution to the league baseline KDE with axis annotations.
+    Assumes `league_kde`, `grid_x`, and `grid_y` are globally accessible.
     """
-    if data.empty or 'spray_deg' not in data.columns or 'launch_angle' not in data.columns:
-        st.error("Player data is missing necessary columns ('spray_deg', 'launch_angle').")
+    global f_league, X, Y  # Reference the static variables
+
+    if data.empty or 'Direction' not in data.columns or 'Angle' not in data.columns:
+        st.error("The dataset is missing required columns ('Direction', 'Angle').")
         return
 
-    # Filter player data
-    player_data = data[data['Batter'] == player_name]
-    if player_data.empty:
-        st.warning(f"No data available for {player_name}.")
-        return
-
-    # Compute KDE for player
-    x_loc_player = player_data['Direction']
-    y_loc_player = player_data['Angle']
+    # Compute KDE for the pre-filtered player data
+    x_loc_player = data['Direction']
+    y_loc_player = data['Angle']
     values_player = np.vstack([x_loc_player, y_loc_player])
     kernel_player = gaussian_kde(values_player)
-    f_player = np.reshape(kernel_player(np.vstack([grid_x.ravel(), grid_y.ravel()])).T, grid_x.shape)
+    f_player = np.reshape(kernel_player(np.vstack([X.ravel(), Y.ravel()])).T, X.shape)
     f_player = f_player * (100 / f_player.sum())  # Normalize to sum to 100
 
     # Calculate difference from league baseline
-    kde_difference = f_player - league_kde
+    kde_difference = f_player - f_league
 
     # Plot the KDE difference
     fig, ax = plt.subplots(figsize=(7, 7))
     levels = np.linspace(-10, 10, 21)  # Contour levels
-    cfset = ax.contourf(grid_x, grid_y, kde_difference, levels=levels, cmap='coolwarm', extend='both')
+    cfset = ax.contourf(X, Y, kde_difference, levels=levels, cmap='coolwarm', extend='both')
 
     # Add axis annotations
     x_ticks = [0, 30, 60, 90]
@@ -789,7 +787,7 @@ def plot_kde_comparison(data, player_name, league_kde, grid_x, grid_y):
     ax.set_ylim(-30, 60)
     ax.set_xticks([])
     ax.set_yticks([])
-    ax.set_title(f"{player_name}'s Batted Ball Difference", fontsize=16)
+    ax.set_title("Batted Ball Difference", fontsize=16)
 
     # Add colorbar
     cbar = plt.colorbar(cfset, ax=ax)
@@ -1188,7 +1186,7 @@ elif page == "Batted Ball Outcomes":
         st.warning("No data available for the selected filters.")
     else:
         # Plot the baseline comparison
-        plot_kde_comparison(filtered_data, player_name, f_league, X, Y)
+        plot_kde_comparison(filtered_data)
 
 
 elif page == "Zone Metrics":
