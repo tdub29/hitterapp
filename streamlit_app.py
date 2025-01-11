@@ -22,6 +22,25 @@ import xgboost as xgb
 from statsmodels.nonparametric.kernel_regression import KernelReg
 from matplotlib.patches import Polygon, Rectangle
 import matplotlib.lines as mlines
+import urllib.request
+
+# URLs to the .npy files in your GitHub repository
+f_league_url = "https://raw.githubusercontent.com/tdub29/hitterapp/main/league_kde_earliest.npy"
+x_grid_url = "https://raw.githubusercontent.com/tdub29/hitterapp/main/grid_x.npy"
+y_grid_url = "https://raw.githubusercontent.com/tdub29/hitterapp/main/grid_y.npy"
+
+# Load .npy files directly from GitHub
+def load_npy_from_url(url):
+    with urllib.request.urlopen(url) as response:
+        return np.load(response, allow_pickle=True)
+
+# Load the files
+f_league = load_npy_from_url(f_league_url)
+X = load_npy_from_url(x_grid_url)
+Y = load_npy_from_url(y_grid_url)
+
+print("Loaded league KDE and grids successfully.")
+
 
 booster = xgb.Booster()
 booster.load_model('xSLG_model.json')
