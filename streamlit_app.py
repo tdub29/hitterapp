@@ -613,7 +613,7 @@ def plot_pitch_locations_by_playresult(data):
     cbar.set_label('xSLG (0 - 0.8)', fontsize=12, color='white')
     cbar.ax.tick_params(labelcolor='white')
 
-    fig.text(cbar_ax.get_position().x0 - 0.15, cbar_ax.get_position().y0 + 0.0, 'X = WHIFF', ha='right', va='center', fontsize=12, color='white')
+    fig.text(cbar_ax.get_position().x0 - 0.15, cbar_ax.get_position().y0 + 0.0, 'X = WHIFF', ha='right', va='center', fontsize=20, color='white')
 
     # Adjust spacing between rows and columns
     plt.subplots_adjust(hspace=0.4)  # More space vertically
