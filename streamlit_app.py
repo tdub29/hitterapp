@@ -354,10 +354,12 @@ else:
 
 
 
+# Modify 'Pitcher' column to have only "Machine" and "Scrimmage" levels
+df['Pitcher'] = df['Pitcher'].fillna('Machine')  # Replace NaNs with "Machine"
+df['Pitchertype'] = df['Pitcher'].apply(lambda x: 'Machine' if x == 'Bunnell, Jack' else 'Scrimmage')
 
-# ADD PITCHER FILTER HERE
-df['Pitcher'].fillna('Machine', inplace=True)
-pitchers = df['Pitcher'].unique()
+# Update unique pitchers after modification
+pitchers = df['Pitchertype'].unique()
 pitchers = sorted(pitchers)
 
 # By default, select all pitchers
@@ -366,6 +368,7 @@ selected_pitchers = st.sidebar.multiselect(
     pitchers,
     default=pitchers  # all selected by default
 )
+
 
 # If no pitchers are selected, filtered_data would be empty, so you may want to handle that case.
 # For now, if user deselects all, it means no pitcher selected (filtered_data will reflect that).
