@@ -372,7 +372,7 @@ selected_pitchers = st.sidebar.multiselect(
 
 # If no pitchers are selected, filtered_data would be empty, so you may want to handle that case.
 # For now, if user deselects all, it means no pitcher selected (filtered_data will reflect that).
-pitcher_filter = df['Pitcher'].isin(selected_pitchers)
+pitcher_filter = df['Pitchertype'].isin(selected_pitchers)
 
 # Apply filters using batter_filter (without Exitspeed filter)
 all_pitches = df[
