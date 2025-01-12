@@ -917,9 +917,9 @@ def display_hitter_metrics(all_pitches):
         else:
             batter_side = None
 
-        if batter_side == 'L':
+        if batter_side == 'Left':
             pull_count = (group_data['Direction'] > 0).sum()
-        elif batter_side == 'R':
+        elif batter_side == 'Right':
             pull_count = (group_data['Direction'] < 0).sum()
         else:
             pull_count = np.nan
