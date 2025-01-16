@@ -1,4 +1,4 @@
-# 🎈 Blank app template
+# TORERO BASEBALL HITTER APP
 
 A simple Streamlit app template for you to modify!
 
