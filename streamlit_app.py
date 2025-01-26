@@ -269,6 +269,13 @@ df['Strikes'] = pd.to_numeric(df['Strikes'], errors='coerce').fillna(0).astype(i
 # Create 'Count' column as a string combining Balls and Strikes
 df['Count'] = df['Balls'].astype(str) + '-' + df['Strikes'].astype(str)
 
+df['ContactPct'] = np.where(
+    df['Swing'] == 'Swing',                   # Only define 0 or 1 if Swing == "Swing"
+    np.where(df['Contact'] == 'Yes', 1.0, 0.0),  # If Contact == "Yes" => 1.0 else 0.0
+    np.nan                                     # If no swing => NaN
+)
+
+
 
 # Map Plate Zones based on PlatelocSide and PlatelocHeight
 def map_plate_zone(row):
@@ -473,6 +480,8 @@ def create_heatmap(data, metric, ax):
     elif metric == 'xSLG':
         # Use a fixed range for xSLG
         vmin, vmax = 0.25, 0.65
+    elif metric == 'ContactPct':  # <-- Add this
+        vmin, vmax = 0.5, 1.0
     else:
         vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
 
@@ -1145,7 +1154,7 @@ page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresu
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
-    fig, axs = plt.subplots(2, 2, figsize=(18, 18))
+    fig, axs = plt.subplots(3, 2, figsize=(18, 28))
 
     # Angle Heatmap
     if 'Angle' in filtered_data.columns and not filtered_data['Angle'].isnull().all():
@@ -1186,6 +1195,19 @@ if page == "Heatmaps":
             horizontalalignment='center',
             verticalalignment='center'
         )
+
+    # 5) Contact% Heatmap
+    if 'ContactPct' in filtered_data.columns and not filtered_data['ContactPct'].isnull().all():
+        create_heatmap(filtered_data, 'ContactPct', axs[1, 1])
+    else:
+        axs[1, 1].set_title("Contact%")
+        axs[1, 1].axis('off')
+        axs[1, 1].text(
+            0.5, 0.5,
+            "Contact% Heatmap\n(Data Not Available)",
+            ha='center', va='center'
+        )
+
 
 
     plt.tight_layout()
