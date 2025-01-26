@@ -1184,8 +1184,8 @@ if page == "Heatmaps":
                     horizontalalignment='center', verticalalignment='center')
 
     # Decision Value Heatmap
-    if 'decision_rv' in filtered_data.columns and not filtered_data['decision_rv'].isnull().all():
-        create_heatmap(filtered_data, 'decision_rv', axs[1,1])
+    if 'decision_rv' in all_pitches.columns and not all_pitches['decision_rv'].isnull().all():
+        create_heatmap(all_pitches, 'decision_rv', axs[1,1])
     else:
         axs[1,1].set_title("Decision Value")
         axs[1,1].axis('off')
@@ -1197,8 +1197,8 @@ if page == "Heatmaps":
         )
 
     # 5) Contact% Heatmap
-    if 'ContactPct' in filtered_data.columns and not filtered_data['ContactPct'].isnull().all():
-        create_heatmap(filtered_data, 'ContactPct', axs[2, 0])
+    if 'ContactPct' in all_pitches.columns and not all_pitches['ContactPct'].isnull().all():
+        create_heatmap(all_pitches, 'ContactPct', axs[2, 0])
     else:
         axs[2, 0].set_title("Contact%")
         axs[2, 0].axis('off')
