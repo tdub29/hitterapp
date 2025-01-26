@@ -1145,7 +1145,7 @@ page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresu
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
-    fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+    fig, axs = plt.subplots(2, 2, figsize=(18, 6))
 
     # Angle Heatmap
     if 'Angle' in filtered_data.columns and not filtered_data['Angle'].isnull().all():
@@ -1173,6 +1173,20 @@ if page == "Heatmaps":
         axs[2].axis('off')
         axs[2].text(0.5, 0.5, "xSLG Heatmap\n(Data Not Available)",
                     horizontalalignment='center', verticalalignment='center')
+
+    # Decision Value Heatmap
+    if 'decision_rv' in filtered_data.columns and not filtered_data['decision_rv'].isnull().all():
+        create_heatmap(filtered_data, 'decision_rv', axs[3])
+    else:
+        axs[3].set_title("Decision Value")
+        axs[3].axis('off')
+        axs[3].text(
+            0.5, 0.5,
+            "Decision Value Heatmap\n(Data Not Available)",
+            horizontalalignment='center',
+            verticalalignment='center'
+        )
+
 
     plt.tight_layout()
     st.pyplot(fig)
