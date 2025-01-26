@@ -689,7 +689,7 @@ def plot_pitch_locations_by_hand_and_ypred(data):
                 marker=marker_style,
                 edgecolor='black',
                 vmin=-0.2,   # adjust color scale as needed
-                vmax=0.2,
+                vmax=0.15,
                 s=80,
                 alpha=0.7
             )
