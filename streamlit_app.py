@@ -1197,10 +1197,16 @@ if page == "Heatmaps":
             horizontalalignment='center',
             verticalalignment='center'
         )
-
-    # 5) Contact% Heatmap
-    if 'ContactPct' in all_pitches.columns and not all_pitches['ContactPct'].isnull().all():
-        create_heatmap(all_pitches, 'ContactPct', axs[2, 0])
+    # 1) Filter out only swing pitches with valid location
+    swing_data = all_pitches[
+        (all_pitches['Swing'] == 'Swing') &
+        (all_pitches['Platelocside'].notnull()) &
+        (all_pitches['Platelocheight'].notnull())
+    ]
+    
+    # 2) Check whether ContactPct is present and not all NaN
+    if 'ContactPct' in swing_data.columns and not swing_data['ContactPct'].isnull().all():
+        create_heatmap(swing_data, 'ContactPct', axs[2, 0])
     else:
         axs[2, 0].set_title("Contact%")
         axs[2, 0].axis('off')
