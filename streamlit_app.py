@@ -481,7 +481,7 @@ def create_heatmap(data, metric, ax):
         # Use a fixed range for xSLG
         vmin, vmax = 0.25, 0.65
     elif metric == 'decision_rv':  # <-- Add this
-        vmin, vmax = -0.2, 0.2
+        vmin, vmax = -0.2, 0.15
     elif metric == 'ContactPct':  # <-- Add this
         vmin, vmax = 0.7, 1.0
     else:
