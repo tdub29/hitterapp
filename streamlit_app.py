@@ -269,7 +269,7 @@ df['Strikes'] = pd.to_numeric(df['Strikes'], errors='coerce').fillna(0).astype(i
 # Create 'Count' column as a string combining Balls and Strikes
 df['Count'] = df['Balls'].astype(str) + '-' + df['Strikes'].astype(str)
 
-df['ContactPct'] = np.where(
+df[''] = np.where(
     df['Swing'] == 'Swing',                   # Only define 0 or 1 if Swing == "Swing"
     np.where(df['Contact'] == 'Yes', 1.0, 0.0),  # If Contact == "Yes" => 1.0 else 0.0
     np.nan                                     # If no swing => NaN
@@ -481,7 +481,7 @@ def create_heatmap(data, metric, ax):
         # Use a fixed range for xSLG
         vmin, vmax = 0.25, 0.65
     elif metric == 'ContactPct':  # <-- Add this
-        vmin, vmax = 0.5, 1.0
+        vmin, vmax = 0.7, 1.0
     else:
         vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
 
