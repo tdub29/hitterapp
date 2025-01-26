@@ -1145,7 +1145,7 @@ page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresu
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
-    fig, axs = plt.subplots(2, 2, figsize=(18, 6))
+    fig, axs = plt.subplots(2, 2, figsize=(18, 18))
 
     # Angle Heatmap
     if 'Angle' in filtered_data.columns and not filtered_data['Angle'].isnull().all():
