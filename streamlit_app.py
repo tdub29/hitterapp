@@ -1149,7 +1149,7 @@ if page == "Heatmaps":
 
     # Angle Heatmap
     if 'Angle' in filtered_data.columns and not filtered_data['Angle'].isnull().all():
-        create_heatmap(filtered_data, 'Angle', axs[0])
+        create_heatmap(filtered_data, 'Angle', axs[0,0])
     else:
         axs[0].set_title("Launch Angle")
         axs[0].axis('off')
@@ -1158,7 +1158,7 @@ if page == "Heatmaps":
 
     # Exit Speed Heatmap
     if 'Exitspeed' in filtered_data.columns and not filtered_data['Exitspeed'].isnull().all():
-        create_heatmap(filtered_data, 'Exitspeed', axs[1])
+        create_heatmap(filtered_data, 'Exitspeed', axs[0,1])
     else:
         axs[1].set_title("Exit Velocity")
         axs[1].axis('off')
@@ -1167,7 +1167,7 @@ if page == "Heatmaps":
 
     # xSLG Heatmap
     if 'xSLG' in filtered_data.columns and not filtered_data['xSLG'].isnull().all():
-        create_heatmap(filtered_data, 'xSLG', axs[2])
+        create_heatmap(filtered_data, 'xSLG', axs[1,0])
     else:
         axs[2].set_title("xSLG")
         axs[2].axis('off')
@@ -1176,7 +1176,7 @@ if page == "Heatmaps":
 
     # Decision Value Heatmap
     if 'decision_rv' in filtered_data.columns and not filtered_data['decision_rv'].isnull().all():
-        create_heatmap(filtered_data, 'decision_rv', axs[3])
+        create_heatmap(filtered_data, 'decision_rv', axs[1,1])
     else:
         axs[3].set_title("Decision Value")
         axs[3].axis('off')
