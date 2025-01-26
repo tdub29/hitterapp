@@ -483,7 +483,7 @@ def create_heatmap(data, metric, ax):
     elif metric == 'decision_rv':  # <-- Add this
         vmin, vmax = -0.2, 0.2
     elif metric == 'ContactPct':  # <-- Add this
-        vmin, vmax = 0.5, 1.0
+        vmin, vmax = 0.7, 1.0
     else:
         vmin, vmax = np.nanmin(heatmap_data), np.nanmax(heatmap_data)
 
