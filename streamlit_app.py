@@ -1198,11 +1198,11 @@ if page == "Heatmaps":
 
     # 5) Contact% Heatmap
     if 'ContactPct' in filtered_data.columns and not filtered_data['ContactPct'].isnull().all():
-        create_heatmap(filtered_data, 'ContactPct', axs[2, 1])
+        create_heatmap(filtered_data, 'ContactPct', axs[2, 0])
     else:
-        axs[2, 1].set_title("Contact%")
-        axs[2, 1].axis('off')
-        axs[2, 1].text(
+        axs[2, 0].set_title("Contact%")
+        axs[2, 0].axis('off')
+        axs[2, 0].text(
             0.5, 0.5,
             "Contact% Heatmap\n(Data Not Available)",
             ha='center', va='center'
