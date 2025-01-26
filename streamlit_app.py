@@ -143,22 +143,6 @@ df['Angle'] = pd.to_numeric(df['Angle'], errors='coerce')
 # Streamlit Sidebar Filters
 st.sidebar.header("Filter Options")
 
-# 1) After loading the CSV:
-df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-
-min_date = df['Date'].min()
-max_date = df['Date'].max()
-
-start_date, end_date = st.sidebar.date_input(
-    "Select Date Range",
-    value=[min_date, max_date]
-)
-
-# 3) Filter
-start_dt = pd.to_datetime(start_date)
-end_dt = pd.to_datetime(end_date)
-
-df = df[(df['Date'] >= start_dt) & (df['Date'] <= end_dt)]
 
 # 4) Proceed with the rest of your pitch filters...
 
@@ -180,6 +164,23 @@ if "All Hitters" in selected_batters:
     batter_filter = True  # No restriction on batters
 else:
     batter_filter = df['Batter'].isin(selected_batters)
+
+# 1) After loading the CSV:
+df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+
+min_date = df['Date'].min()
+max_date = df['Date'].max()
+
+start_date, end_date = st.sidebar.date_input(
+    "Select Date Range",
+    value=[min_date, max_date]
+)
+
+# 3) Filter
+start_dt = pd.to_datetime(start_date)
+end_dt = pd.to_datetime(end_date)
+
+df = df[(df['Date'] >= start_dt) & (df['Date'] <= end_dt)]
 
 
 
