@@ -1160,36 +1160,36 @@ if page == "Heatmaps":
     if 'Angle' in filtered_data.columns and not filtered_data['Angle'].isnull().all():
         create_heatmap(filtered_data, 'Angle', axs[0,0])
     else:
-        axs[0].set_title("Launch Angle")
-        axs[0].axis('off')
-        axs[0].text(0.5, 0.5, "Launch Angle Heatmap\n(Data Not Available)",
+        axs[0,0].set_title("Launch Angle")
+        axs[0,0].axis('off')
+        axs[0,0].text(0.5, 0.5, "Launch Angle Heatmap\n(Data Not Available)",
                     horizontalalignment='center', verticalalignment='center')
 
     # Exit Speed Heatmap
     if 'Exitspeed' in filtered_data.columns and not filtered_data['Exitspeed'].isnull().all():
         create_heatmap(filtered_data, 'Exitspeed', axs[0,1])
     else:
-        axs[1].set_title("Exit Velocity")
-        axs[1].axis('off')
-        axs[1].text(0.5, 0.5, "Exit Velocity Heatmap\n(Data Not Available)",
+        axs[0,1].set_title("Exit Velocity")
+        axs[0,1].axis('off')
+        axs[0,1].text(0.5, 0.5, "Exit Velocity Heatmap\n(Data Not Available)",
                     horizontalalignment='center', verticalalignment='center')
 
     # xSLG Heatmap
     if 'xSLG' in filtered_data.columns and not filtered_data['xSLG'].isnull().all():
         create_heatmap(filtered_data, 'xSLG', axs[1,0])
     else:
-        axs[2].set_title("xSLG")
-        axs[2].axis('off')
-        axs[2].text(0.5, 0.5, "xSLG Heatmap\n(Data Not Available)",
+        axs[1,0].set_title("xSLG")
+        axs[1,0].axis('off')
+        axs[1,0].text(0.5, 0.5, "xSLG Heatmap\n(Data Not Available)",
                     horizontalalignment='center', verticalalignment='center')
 
     # Decision Value Heatmap
     if 'decision_rv' in filtered_data.columns and not filtered_data['decision_rv'].isnull().all():
         create_heatmap(filtered_data, 'decision_rv', axs[1,1])
     else:
-        axs[3].set_title("Decision Value")
-        axs[3].axis('off')
-        axs[3].text(
+        axs[1,1].set_title("Decision Value")
+        axs[1,1].axis('off')
+        axs[1,1].text(
             0.5, 0.5,
             "Decision Value Heatmap\n(Data Not Available)",
             horizontalalignment='center',
@@ -1200,9 +1200,9 @@ if page == "Heatmaps":
     if 'ContactPct' in filtered_data.columns and not filtered_data['ContactPct'].isnull().all():
         create_heatmap(filtered_data, 'ContactPct', axs[2, 1])
     else:
-        axs[1, 1].set_title("Contact%")
-        axs[1, 1].axis('off')
-        axs[1, 1].text(
+        axs[2, 1].set_title("Contact%")
+        axs[2, 1].axis('off')
+        axs[2, 1].text(
             0.5, 0.5,
             "Contact% Heatmap\n(Data Not Available)",
             ha='center', va='center'
