@@ -739,28 +739,44 @@ def calculate_zone_metrics(data):
     if 'PlateZone' not in data.columns:
         st.error("The column 'PlateZone' does not exist in the dataset.")
         return
+    
     zones = ['Heart', 'Shadow', 'Chase', 'Waste']
     zone_metrics = []
+
     for zone in zones:
         zone_data = data[data['PlateZone'] == zone]
         zone_swings = zone_data[zone_data['Swing'] == 'Swing']
+        
         total_pitches = len(zone_data)
         swings = len(zone_swings)
         contacts = (zone_swings['Contact'] == 'Yes').sum()
+
         hard_hits = (zone_swings['Exitspeed'] > 90).sum() if 'Exitspeed' in zone_swings.columns else 0
-        xslg = zone_swings['xSLG'].mean() if not zone_swings['xSLG'].isnull().all() else np.nan
+        xslg = (zone_swings['xSLG'].mean() 
+                if 'xSLG' in zone_swings.columns and not zone_swings['xSLG'].isnull().all() 
+                else float('nan'))
+        
+        # NEW: Compute average decision_rv across all pitches in this zone
+        dec_rv = (zone_data['decision_rv'].mean() 
+                  if 'decision_rv' in zone_data.columns and not zone_data['decision_rv'].isnull().all() 
+                  else float('nan'))
+
         swing_pct = swings / total_pitches if total_pitches > 0 else 0
         contact_pct = contacts / swings if swings > 0 else 0
         hard_hit_pct = hard_hits / swings if swings > 0 else 0
+        
         zone_metrics.append({
             'Zone': zone,
             'Total Pitches': total_pitches,
-            'Swing%': round(swing_pct,4),
-            'Contact%': round(contact_pct,4),
-            'xSLG': round(xslg,4) if pd.notnull(xslg) else 'N/A',
-            'Hard Hit%': round(hard_hit_pct,4)
+            'Swing%': round(swing_pct, 4),
+            'Contact%': round(contact_pct, 4),
+            'xSLG': round(xslg, 4) if pd.notnull(xslg) else 'N/A',
+            'Hard Hit%': round(hard_hit_pct, 4),
+            'Decision RV': round(dec_rv, 4) if pd.notnull(dec_rv) else 'N/A'
         })
+
     zone_metrics_df = pd.DataFrame(zone_metrics)
+
     narrow_style = """
     <style>
     table td, table th {
