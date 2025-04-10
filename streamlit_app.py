@@ -235,7 +235,7 @@ df['Event'] = np.where(
 # Define Swing vs Take based on Exitspeed/Pitchcall
 ############################################
 df['Swing'] = np.where(
-    (df['Exitspeed'] > 0) | (df['Pitchcall'].str.contains('Swing|Foul', case=False, na=False)),
+    (df['Exitspeed'] > 0) | (df['Event'].str.contains('Swing|Foul', case=False, na=False)),
     'Swing',    # Swing if there is a nonzero Exitspeed or "Swing"/"Foul" in call.
     'Take'
 )
