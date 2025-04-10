@@ -178,24 +178,12 @@ df = df[(df['Date'] >= start_dt) & (df['Date'] <= end_dt)]
 ############################################
 st.sidebar.header("Filter Options")
 
-# Batter Filter
-batters = df['Batter'].dropna().unique()
-batters = sorted(batters)
-batters = ["all hitters"] + list(batters)
-default_batter = ["all hitters"] if "all hitters" in batters else [batters[0]] if batters else []
-selected_batters = st.sidebar.multiselect("Select Batter(s)", batters, default=default_batter)
+batters = df["Batter"].dropna().unique().tolist()
+batters.sort()
+batters = ["All Hitters"] + batters
+selected_batters = st.sidebar.multiselect("Select Batter(s)", batters, default=["All Hitters"])
 
-# Apply filtering logic
-if "all hitters" in selected_batters and len(selected_batters) == 1:
-    batter_filter = pd.Series(True, index=df.index)  # ✅ No filter applied
-else:
-    filtered_batters = [b for b in selected_batters if b != "all hitters"]
-    batter_filter = df['Batter'].isin(filtered_batters)
-
-
-
-# Pitcher Hand Filter (using provided Pitcherhand)
-pitcher_hands = ['All', 'R', 'L']
+pitcher_hands = ["All", "R", "L"]
 selected_pitcher_hand = st.sidebar.selectbox("Pitcher Hand", pitcher_hands, index=0)
 
 # Higher-level Pitch Categories Filter
@@ -284,7 +272,6 @@ df['Whiff'] = np.where((df['Swing'] == 'Swing') & (df['Contact'] == 'No'), 'Yes'
 # Create Final Count String (if needed)
 ############################################
 df['Count'] = df['balls'].astype(str) + '-' + df['strikes'].astype(str)
-
 df['ContactPct'] = np.where(
     df['Swing'] == 'Swing',
     np.where(df['Contact'] == 'Yes', 1.0, 0.0),
@@ -323,7 +310,7 @@ df_swing = df[df['Swing'] == 'Swing'].dropna(subset=['Platelocside', 'Plateloche
 df_no_swing['decision_rv'] = model_no_swing.predict(df_no_swing[['Platelocside','Platelocheight','strikes','balls']])
 df_swing['decision_rv'] = model_swing.predict(df_swing[['Platelocside','Platelocheight','strikes','balls']])
 
-# Merge predictions back using "Pitchuid" (from uniqPitchId)
+# Merge predictions back if "Pitchuid" exists
 if 'Pitchuid' in df.columns:
     df_no_swing_merge = df_no_swing[['Pitchuid','decision_rv']].rename(columns={'decision_rv': 'decision_rv_no_swing'})
     df_swing_merge = df_swing[['Pitchuid','decision_rv']].rename(columns={'decision_rv': 'decision_rv_swing'})
@@ -333,25 +320,30 @@ else:
     pass
 
 ############################################
-# Adjust Pitcher Types (Example: assign “Machine” or “Scrimmage”)
+# 3) Construct the actual boolean filter for Batter
 ############################################
-df['Pitcher'] = df['Pitcher'].fillna('Machine')
-df['Pitchertype'] = df['Pitcher'].apply(lambda x: 'Machine' if x == 'Bunnell, Jack' else 'Scrimmage')
-pitchers = sorted(df['Pitchertype'].unique())
-selected_pitchers = st.sidebar.multiselect("Select Pitcher(s)", pitchers, default=pitchers)
-pitcher_filter = df['Pitchertype'].isin(selected_pitchers)
+if selected_batters == ["All Hitters"] or not selected_batters:
+    batter_filter = True
+else:
+    batter_filter = df["Batter"].isin(selected_batters)
 
 ############################################
-# Apply Overall Filters to Create Final Data Subsets
+# 4) Construct the pitcher hand filter
+############################################
+if selected_pitcher_hand == "All":
+    pitcher_hand_filter = True
+else:
+    pitcher_hand_filter = df["Pitcherhand"] == selected_pitcher_hand
+
+############################################
+# Apply Overall Filters to Create Final Data Subset
 ############################################
 all_pitches = df[
-    batter_filter &
-    pitcher_filter &
+    (batter_filter) &
+    (pitcher_hand_filter) &
     df['Pitchcategory'].isin(selected_categories) &
     df['Autopitchtype'].isin(selected_pitch_types)
 ]
-if selected_pitcher_hand != 'All':
-    all_pitches = all_pitches[all_pitches['Pitcherhand'] == selected_pitcher_hand]
 
 filtered_data = all_pitches[(all_pitches['Exitspeed'] > 0) & (all_pitches['Exitspeed'].notnull())]
 if selected_pitcher_hand != 'All':
@@ -368,6 +360,7 @@ if 'Pitchuid' in filtered_data.columns and 'Pitchuid' in all_pitches.columns:
     xSLG_data = filtered_data[['Pitchuid', 'xSLG']].drop_duplicates(subset='Pitchuid')
     all_pitches = all_pitches.merge(xSLG_data, on='Pitchuid', how='left')
     all_pitches['xSLG'] = all_pitches['xSLG'].fillna(np.nan)
+
 
 ############################################
 # Visualization Functions
