@@ -91,8 +91,8 @@ rename_mapping = {
     "pitcher": "Pitcher",
     "exitvelocity": "Exitspeed",   # use the provided exit velocity
     "launchang": "Angle",
-    "x": "Platelocside",
-    "y": "Platelocheight",
+    "PX": "Platelocside",
+    "PZ": "Platelocheight",
     "pitchoutcome": "Pitchcall",
     "pitchresult": "Playresult",
     "batterhand": "Batterside",
