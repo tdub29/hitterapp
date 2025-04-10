@@ -179,17 +179,19 @@ df = df[(df['Date'] >= start_dt) & (df['Date'] <= end_dt)]
 st.sidebar.header("Filter Options")
 
 # Batter Filter
-# Build unique list of batter names in lowercase.
 batters = df['Batter'].dropna().unique()
 batters = sorted(batters)
 batters = ["all hitters"] + list(batters)
 default_batter = ["all hitters"] if "all hitters" in batters else [batters[0]] if batters else []
 selected_batters = st.sidebar.multiselect("Select Batter(s)", batters, default=default_batter)
-# Apply the filter using these standardized values.
-if "all hitters" in selected_batters:
-    batter_filter = True
+
+# Apply filtering logic
+if "all hitters" in selected_batters and len(selected_batters) == 1:
+    batter_filter = pd.Series(True, index=df.index)  # ✅ No filter applied
 else:
-    batter_filter = df['Batter'].isin(selected_batters)
+    filtered_batters = [b for b in selected_batters if b != "all hitters"]
+    batter_filter = df['Batter'].isin(filtered_batters)
+
 
 
 # Pitcher Hand Filter (using provided Pitcherhand)
