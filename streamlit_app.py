@@ -790,7 +790,6 @@ def calculate_zone_metrics(data):
             'Contact%': round(contact_pct, 4),
             'xSLG': round(xslg, 4) if pd.notnull(xslg) else 'N/A',
             'Hard Hit%': round(hard_hit_pct, 4),
-            'Avg decision_rv': round(dec_rv, 4) if pd.notnull(dec_rv) else 'N/A',
             'Decision RV (20–80)': round(dec_rv_20_80, 1) if pd.notnull(dec_rv_20_80) else 'N/A'
         })
 
