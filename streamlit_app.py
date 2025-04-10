@@ -265,8 +265,20 @@ df['Atbatid'] = (
 ############################################
 # Contact and Whiff Columns Based on Exitspeed
 ############################################
-df['Contact'] = np.where(df['Exitspeed'] > 0, 'Yes', 'No')
-df['Whiff'] = np.where((df['Swing'] == 'Swing') & (df['Contact'] == 'No'), 'Yes', 'No')
+# Whiff = “Yes” if Event string contains “Swinging”
+df['Whiff'] = np.where(
+    df['Event'].str.contains('Swinging', case=False, na=False),
+    'Yes',
+    'No'
+)
+
+# Contact = “Yes” if the pitch was swung at AND Whiff == “No”
+df['Contact'] = np.where(
+    (df['Swing'] == 'Swing') & (df['Whiff'] == 'No'),
+    'Yes',
+    'No'
+)
+
 
 ############################################
 # Create Final Count String (if needed)
