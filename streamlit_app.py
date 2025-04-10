@@ -829,10 +829,10 @@ elif page == "Pitch Locations by Decision Value":
     plot_pitch_locations_by_hand_and_ypred(all_pitches)
 elif page == "Raw Data":
     st.title("Raw Data Display")
-    if filtered_data.empty:
+    if all_pitches.empty:
         st.warning("No filtered data available. Adjust your filters to see results.")
     else:
-        st.dataframe(filtered_data.head(1000))
+        st.dataframe(all_pitches.head(1000))
 elif page == "Hitter Metrics":
     st.title("Hitter Metrics")
     display_hitter_metrics(all_pitches)
