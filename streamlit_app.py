@@ -837,6 +837,7 @@ elif page == "Pitch Locations by Decision Value":
 elif page == "Raw Data":
     st.title("Raw Data Display")
     st.write("batter_filter example:", df["Batter"].isin(selected_batters).unique())
+    st.write("User selection:", selected_batters)
     if filtered_data.empty:
         st.warning("No filtered data available. Adjust your filters to see results.")
     else:
