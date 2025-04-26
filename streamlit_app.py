@@ -240,6 +240,9 @@ df['Swing'] = np.where(
     'Take'
 )
 
+df['Platelocside'] = -1 * df['Platelocside']
+
+
 ############################################
 # Define Strike Zone and Zone Column
 ############################################
