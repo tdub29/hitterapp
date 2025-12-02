@@ -121,9 +121,23 @@ df.rename(columns=final_mapping, inplace=True)
 ############################################
 # Create Derived Columns
 ############################################
-# Split "Count" (e.g., "0-0") into numeric Balls and Strikes.
-# (Assumes count is in the format "balls-strikes".)
-df[['Balls', 'Strikes']] = df['Count'].str.split('-', expand=True).astype(int)
+# Split "Count" (e.g., "0-0") into numeric Balls and Strikes when available.
+# Fallback to existing "Balls"/"Strikes" columns (any casing) if "Count" does not exist.
+lower_cols = {col.lower(): col for col in df.columns}
+
+if 'count' in lower_cols:
+    count_col = lower_cols['count']
+    count_split = df[count_col].astype(str).str.split('-', expand=True)
+    df[['Balls', 'Strikes']] = count_split.apply(pd.to_numeric, errors='coerce')
+elif {'balls', 'strikes'}.issubset(lower_cols):
+    balls_col = lower_cols['balls']
+    strikes_col = lower_cols['strikes']
+    df['Balls'] = pd.to_numeric(df[balls_col], errors='coerce')
+    df['Strikes'] = pd.to_numeric(df[strikes_col], errors='coerce')
+else:
+    df['Balls'] = np.nan
+    df['Strikes'] = np.nan
+
 # Now rename these to lower-case as used later:
 df.rename(columns={"Balls": "balls", "Strikes": "strikes"}, inplace=True)
 
