@@ -90,21 +90,33 @@ rename_mapping = {
     "gamedate": "Date",
     "batter": "Batter",
     "pitcher": "Pitcher",
+    "pitcherthrows": "Pitcherhand",
+    "batterside": "Batterside",
     "exitvelocity": "Exitspeed",   # use the provided exit velocity
+    "exitspeed": "Exitspeed",
     "launchang": "Angle",
+    "angle": "Angle",
     "px": "Platelocside",
+    "platelocside": "Platelocside",
     "pz": "Platelocheight",
+    "platelocheight": "Platelocheight",
     "pitchoutcome": "Pitchcall",
+    "pitchcall": "Pitchcall",
     "pitchresult": "Playresult",
+    "playresult": "Playresult",
     "batterhand": "Batterside",
     "pitcherhand": "Pitcherhand",
     "uniqpitchid": "Pitchuid",
+    "pitchuid": "Pitchuid",
     "pitchtypefull": "Autopitchtype",
     "count": "Count",
     "abnumingame": "Paofinning",
+    "paofinning": "Paofinning",
     "inn": "Inning",
     "exitdir": "Direction",
-    "dist": "Distance"
+    "dist": "Distance",
+    # Some CSVs already provide an AutoPitchType column; normalize its casing.
+    "autopitchtype": "Autopitchtype"
 }
 
 # Convert column names to lower-case (strip spaces) for matching keys
@@ -117,6 +129,19 @@ for key, new_name in rename_mapping.items():
         final_mapping[current_cols[key]] = new_name
 
 df.rename(columns=final_mapping, inplace=True)
+
+# Ensure AutoPitchType exists (case-insensitive); if not, fall back to TaggedPitchType.
+lower_cols = {col.lower(): col for col in df.columns}
+auto_pitch_col = lower_cols.get('autopitchtype')
+if auto_pitch_col:
+    if auto_pitch_col != 'Autopitchtype':
+        df.rename(columns={auto_pitch_col: 'Autopitchtype'}, inplace=True)
+else:
+    tagged_col = lower_cols.get('taggedpitchtype')
+    if tagged_col:
+        df['Autopitchtype'] = df[tagged_col]
+    else:
+        df['Autopitchtype'] = np.nan
 
 ############################################
 # Create Derived Columns
