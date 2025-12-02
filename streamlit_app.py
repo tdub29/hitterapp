@@ -80,31 +80,32 @@ sns.set_theme(
 # Load CSV With New Column Names and Rename Accordingly
 ############################################
 # (Update file_path to your new CSV source if needed)
-file_path = "https://raw.githubusercontent.com/tdub29/hitterapp/refs/heads/main/USDHITTINGYTD.csv"
+file_path =  "https://raw.githubusercontent.com/tdub29/streamlit-app-1/refs/heads/main/usd_baseball_TM_master_file.csv"
+#"https://raw.githubusercontent.com/tdub29/hitterapp/refs/heads/main/USDHITTINGYTD.csv"
 df = pd.read_csv(file_path)
 
 # Use a mapping dictionary to rename new columns to the ones the code expects:
 # (All keys are assumed case-insensitive; adjust if needed.)
-rename_mapping = {
-    "gamedate": "Date",
-    "batter": "Batter",
-    "pitcher": "Pitcher",
-    "exitvelocity": "Exitspeed",   # use the provided exit velocity
-    "launchang": "Angle",
-    "px": "Platelocside",
-    "pz": "Platelocheight",
-    "pitchoutcome": "Pitchcall",
-    "pitchresult": "Playresult",
-    "batterhand": "Batterside",
-    "pitcherhand": "Pitcherhand",
-    "uniqpitchid": "Pitchuid",
-    "pitchtypefull": "Autopitchtype",
-    "count": "Count",
-    "abnumingame": "Paofinning",
-    "inn": "Inning",
-    "exitdir": "Direction",
-    "dist": "Distance"
-}
+# rename_mapping = {
+#     "gamedate": "Date",
+#     "batter": "Batter",
+#     "pitcher": "Pitcher",
+#     "exitvelocity": "Exitspeed",   # use the provided exit velocity
+#     "launchang": "Angle",
+#     "px": "Platelocside",
+#     "pz": "Platelocheight",
+#     "pitchoutcome": "Pitchcall",
+#     "pitchresult": "Playresult",
+#     "batterhand": "Batterside",
+#     "pitcherhand": "Pitcherhand",
+#     "uniqpitchid": "Pitchuid",
+#     "pitchtypefull": "Autopitchtype",
+#     "count": "Count",
+#     "abnumingame": "Paofinning",
+#     "inn": "Inning",
+#     "exitdir": "Direction",
+#     "dist": "Distance"
+# }
 
 # Convert column names to lower-case (strip spaces) for matching keys
 df.columns = [col.strip() for col in df.columns]
