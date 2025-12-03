@@ -12,6 +12,7 @@ except ImportError:
 
 import sklearn
 import pandas as pd
+from pandas.api.types import is_datetime64tz_dtype
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -205,9 +206,43 @@ df['Angle'] = pd.to_numeric(df['Angle'], errors='coerce')
 ############################################
 # Convert Date Column and Filter by Date
 ############################################
-df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-min_date = df['Date'].min()
-max_date = df['Date'].max()
+if 'Date' in df.columns:
+    date_series = df['Date']
+    parsed_dates = pd.to_datetime(date_series, format="%Y-%m-%d", errors='coerce')
+
+    # Try additional common formats for entries that did not parse initially
+    fallback_formats = ["%m/%d/%Y", "%m-%d-%Y", "%Y/%m/%d"]
+    for fmt in fallback_formats:
+        mask = parsed_dates.isna() & date_series.notna()
+        if not mask.any():
+            break
+        fallback_parsed = pd.to_datetime(date_series.loc[mask], format=fmt, errors='coerce')
+        if is_datetime64tz_dtype(fallback_parsed):
+            fallback_parsed = fallback_parsed.dt.tz_localize(None)
+        parsed_dates.loc[mask] = fallback_parsed
+
+    # Final fallback: let pandas attempt to infer any remaining formats
+    # Preserve the original wall-clock time for timezone-aware strings by
+    # avoiding conversion to UTC before stripping the timezone information.
+    mask = parsed_dates.isna() & date_series.notna()
+    if mask.any():
+        inferred = pd.to_datetime(date_series.loc[mask], errors='coerce')
+        if is_datetime64tz_dtype(inferred):
+            inferred = inferred.dt.tz_localize(None)
+        parsed_dates.loc[mask] = inferred
+
+    df['Date'] = pd.to_datetime(parsed_dates.dt.date, errors='coerce')
+else:
+    df['Date'] = pd.NaT
+
+valid_dates = df['Date'].dropna()
+if valid_dates.empty:
+    today = pd.Timestamp.today().normalize()
+    min_date = max_date = today.date()
+else:
+    min_date = valid_dates.min().date()
+    max_date = valid_dates.max().date()
+
 start_date, end_date = st.sidebar.date_input("Select Date Range", value=[min_date, max_date])
 start_dt = pd.to_datetime(start_date)
 end_dt = pd.to_datetime(end_date)
