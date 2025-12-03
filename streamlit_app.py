@@ -223,6 +223,10 @@ batters.sort()
 batters = ["All Hitters"] + batters
 selected_batters = st.sidebar.multiselect("Select Batter(s)", batters, default=["All Hitters"])
 
+df["Machine"] = np.where(df["Pitcher"].astype(str).str.strip() == "Bunnell, Jack", "Machine", "Pitching")
+machine_options = ["All", "Machine", "Pitching"]
+selected_machine = st.sidebar.selectbox("Machine", machine_options, index=0)
+
 pitcher_hands = ["All", "R", "L"]
 selected_pitcher_hand = st.sidebar.selectbox("Pitcher Hand", pitcher_hands, index=0)
 
@@ -383,6 +387,14 @@ else:
     batter_filter = df["Batter"].isin(selected_batters)
 
 ############################################
+# Machine filter
+############################################
+if selected_machine == "All":
+    machine_filter = True
+else:
+    machine_filter = df["Machine"] == selected_machine
+
+############################################
 # 4) Construct the pitcher hand filter
 ############################################
 if selected_pitcher_hand == "All":
@@ -395,6 +407,7 @@ else:
 ############################################
 all_pitches = df[
     (batter_filter) &
+    (machine_filter) &
     (pitcher_hand_filter) &
     df['Pitchcategory'].isin(selected_categories) &
     df['Autopitchtype'].isin(selected_pitch_types)
