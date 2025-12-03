@@ -910,11 +910,88 @@ def calculate_zone_metrics(data):
     st.markdown(narrow_style, unsafe_allow_html=True)
     st.dataframe(zone_metrics_df)
 
+
+def build_game_level_metrics(batter_pitches):
+    batter_pitches = batter_pitches.dropna(subset=['Date']).copy()
+    if batter_pitches.empty:
+        return pd.DataFrame()
+
+    batter_pitches.sort_values('Date', inplace=True)
+    grouped = batter_pitches.groupby('Date')
+    rows = []
+
+    for game_date, game_data in grouped:
+        total_pitches = len(game_data)
+        swings = (game_data['Swing'] == 'Swing').sum()
+        zone_pitches = (game_data['Zone'] == 'InZone').sum()
+        zone_swings = ((game_data['Zone'] == 'InZone') & (game_data['Swing'] == 'Swing')).sum()
+        zone_contact = ((game_data['Zone'] == 'InZone') & (game_data['Swing'] == 'Swing') & (game_data['Contact'] == 'Yes')).sum()
+        swinging_strikes = ((game_data['Swing'] == 'Swing') & (game_data['Contact'] == 'No')).sum()
+        chase_swings = ((game_data['Zone'] == 'Out') & (game_data['Swing'] == 'Swing')).sum()
+
+        batted_balls = game_data[game_data['Exitspeed'] > 0]
+        avg_ev = batted_balls['Exitspeed'].mean()
+        hard_hits = (batted_balls['Exitspeed'] > 90).sum()
+        gb_count = (batted_balls['Angle'] < 0).sum()
+        batted_ball_total = len(batted_balls)
+
+        rows.append({
+            'Date': game_date,
+            'Swing%': swings / np.maximum(total_pitches, 1),
+            'Zone-swing%': zone_swings / np.maximum(zone_pitches, 1),
+            'Zone Contact%': zone_contact / np.maximum(zone_swings, 1),
+            'Swinging Strike%': swinging_strikes / np.maximum(total_pitches, 1),
+            'Chase%': chase_swings / np.maximum((game_data['Zone'] == 'Out').sum(), 1),
+            'Average Exit Velocity': avg_ev,
+            'Hard Hit%': hard_hits / np.maximum(batted_ball_total, 1),
+            'Ground Ball%': gb_count / np.maximum(batted_ball_total, 1)
+        })
+
+    game_metrics = pd.DataFrame(rows)
+    game_metrics.sort_values('Date', inplace=True)
+    return game_metrics
+
+
+def plot_rolling_game_metrics(game_metrics):
+    metrics = [
+        'Swing%', 'Zone-swing%', 'Zone Contact%', 'Swinging Strike%',
+        'Chase%', 'Average Exit Velocity', 'Hard Hit%', 'Ground Ball%'
+    ]
+
+    rolling_metrics = game_metrics.set_index('Date')[metrics].rolling(window=3, min_periods=1).mean().reset_index()
+
+    fig, axes = plt.subplots(4, 2, figsize=(16, 18))
+    axes = axes.flatten()
+
+    for ax, metric in zip(axes, metrics):
+        ax.plot(rolling_metrics['Date'], rolling_metrics[metric], marker='o', color=pl_text)
+        ax.set_title(f"3-Game Rolling {metric}")
+        ax.set_xlabel("Game Date")
+        ax.set_ylabel(metric)
+        ax.tick_params(axis='x', rotation=45)
+        ax.grid(True, linestyle='--', alpha=0.3)
+
+    plt.tight_layout()
+    return fig
+
 ############################################
 # Streamlit Navigation
 ############################################
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Select Page", ["Heatmaps", "Pitch Locations by Playresult", "Pitch Locations by Decision Value", "Batted Ball Outcomes", "Spray Chart", "Hitter Metrics", "Zone Metrics", "Raw Data"])
+page = st.sidebar.radio(
+    "Select Page",
+    [
+        "Heatmaps",
+        "Pitch Locations by Playresult",
+        "Pitch Locations by Decision Value",
+        "Batted Ball Outcomes",
+        "Spray Chart",
+        "Hitter Metrics",
+        "Zone Metrics",
+        "Rolling Trends",
+        "Raw Data"
+    ]
+)
 
 if page == "Heatmaps":
     st.title("Hitter Heatmaps")
@@ -982,3 +1059,28 @@ elif page == "Batted Ball Outcomes":
 elif page == "Zone Metrics":
     st.title("Zone Metrics: Heart, Shadow, Chase, Waste")
     calculate_zone_metrics(all_pitches)
+elif page == "Rolling Trends":
+    st.title("Rolling Hitter Trends")
+
+    if selected_batters == ["All Hitters"] or not selected_batters:
+        batter_options = sorted(all_pitches['Batter'].dropna().unique())
+    else:
+        batter_options = selected_batters
+
+    if not batter_options:
+        st.warning("No batters available for the selected filters.")
+    else:
+        chosen_batter = st.selectbox("Select Batter", batter_options)
+        batter_pitches = all_pitches[all_pitches['Batter'] == chosen_batter]
+        game_metrics = build_game_level_metrics(batter_pitches)
+
+        if game_metrics.empty:
+            st.warning("Not enough data with dates for the selected batter.")
+        else:
+            rolling_chart = plot_rolling_game_metrics(game_metrics)
+            st.pyplot(rolling_chart)
+
+            rolling_table = game_metrics.set_index('Date').rolling(window=3, min_periods=1).mean().reset_index()
+            rolling_table['Date'] = rolling_table['Date'].dt.strftime('%Y-%m-%d')
+            st.write("### 3-Game Rolling Values")
+            st.dataframe(rolling_table)
