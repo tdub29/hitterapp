@@ -222,9 +222,11 @@ if 'Date' in df.columns:
         parsed_dates.loc[mask] = fallback_parsed
 
     # Final fallback: let pandas attempt to infer any remaining formats
+    # Preserve the original wall-clock time for timezone-aware strings by
+    # avoiding conversion to UTC before stripping the timezone information.
     mask = parsed_dates.isna() & date_series.notna()
     if mask.any():
-        inferred = pd.to_datetime(date_series.loc[mask], errors='coerce', utc=True)
+        inferred = pd.to_datetime(date_series.loc[mask], errors='coerce')
         if is_datetime64tz_dtype(inferred):
             inferred = inferred.dt.tz_localize(None)
         parsed_dates.loc[mask] = inferred
