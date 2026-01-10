@@ -1191,14 +1191,11 @@ elif page == "Rolling Trends":
     st.title("Rolling Hitter Trends")
 
     if selected_batters == ["All Hitters"] or not selected_batters:
-        batter_options = sorted(all_pitches['Batter'].dropna().unique())
+        st.warning("Select a single batter from the sidebar to view rolling trends.")
+    elif len(selected_batters) > 1:
+        st.warning("Select only one batter from the sidebar to view rolling trends.")
     else:
-        batter_options = selected_batters
-
-    if not batter_options:
-        st.warning("No batters available for the selected filters.")
-    else:
-        chosen_batter = st.selectbox("Select Batter", batter_options)
+        chosen_batter = selected_batters[0]
         batter_pitches = all_pitches[all_pitches['Batter'] == chosen_batter]
         game_metrics = build_game_level_metrics(batter_pitches)
 
