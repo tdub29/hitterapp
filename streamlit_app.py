@@ -20,11 +20,13 @@ from matplotlib.patches import Polygon, Rectangle
 import matplotlib.lines as mlines
 import xgboost as xgb
 from statsmodels.nonparametric.kernel_regression import KernelReg
+from statsmodels.nonparametric.smoothers_lowess import lowess
 try:
     from scipy.stats import gaussian_kde
 except ImportError as e:
     print(f"Error importing gaussian_kde: {e}")
 import matplotlib as mpl
+import matplotlib.dates as mdates
 
 ############################################
 # Load Machine Learning Models
@@ -982,8 +984,8 @@ def build_rolling_zone_metrics_table(batter_pitches):
     if len(recent_dates) == 0:
         return pd.DataFrame()
 
-    last_three_dates = set(recent_dates[-3:])
-    rolling_window = batter_pitches[batter_pitches['Date'].dt.normalize().isin(last_three_dates)].copy()
+    last_six_dates = set(recent_dates[-6:])
+    rolling_window = batter_pitches[batter_pitches['Date'].dt.normalize().isin(last_six_dates)].copy()
     if rolling_window.empty:
         return pd.DataFrame()
 
@@ -1061,14 +1063,24 @@ def plot_rolling_game_metrics(game_metrics):
         'Chase%', 'Average Exit Velocity', 'Hard Hit%', 'Ground Ball%'
     ]
 
-    rolling_metrics = game_metrics.set_index('Date')[metrics].rolling(window=3, min_periods=1).mean().reset_index()
+    rolling_metrics = game_metrics.set_index('Date')[metrics].rolling(window=6, min_periods=1).mean().reset_index()
 
     fig, axes = plt.subplots(4, 2, figsize=(16, 18))
     axes = axes.flatten()
+    date_numbers = mdates.date2num(rolling_metrics['Date'])
+
+    def smooth_series(x_vals, y_vals, frac=0.6):
+        if len(x_vals) < 3:
+            return x_vals, y_vals
+        smoothed = lowess(y_vals, x_vals, frac=frac, return_sorted=True)
+        return smoothed[:, 0], smoothed[:, 1]
 
     for ax, metric in zip(axes, metrics):
-        ax.plot(rolling_metrics['Date'], rolling_metrics[metric], marker='o', color=pl_text)
-        ax.set_title(f"3-Game Rolling {metric}")
+        y_vals = rolling_metrics[metric].to_numpy()
+        smoothed_x, smoothed_y = smooth_series(date_numbers, y_vals)
+        ax.plot(mdates.num2date(smoothed_x), smoothed_y, color=pl_text, linewidth=2)
+        ax.scatter(rolling_metrics['Date'], y_vals, color=pl_text, s=30, alpha=0.6)
+        ax.set_title(f"6-Game Rolling {metric}")
         ax.set_xlabel("Game Date")
         ax.set_ylabel(metric)
         ax.tick_params(axis='x', rotation=45)
@@ -1187,7 +1199,7 @@ elif page == "Rolling Trends":
             if rolling_zone_metrics.empty:
                 st.warning("Not enough zone data available for the 3-game rolling window.")
             else:
-                st.write("### 3-Game Rolling Zone Metrics (Heart/Shadow/Chase/Waste)")
+                st.write("### 6-Game Rolling Zone Metrics (Heart/Shadow/Chase/Waste)")
                 st.dataframe(rolling_zone_metrics)
 
             st.write("### Raw Data (Selected Batter)")
