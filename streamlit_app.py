@@ -1216,10 +1216,17 @@ elif page == "Rolling Trends":
 
         st.write("### Raw Data (Selected Batter)")
         raw_data_columns = [
-            "Platelocheight",
-            "Platelocside",
+            "Date",
+            "Swing",
+            "Zone",
+            "Contact",
+            "PlateZone",
             "Exitspeed",
             "Angle",
+            "xSLG",
+            "decision_rv",
+            "Platelocheight",
+            "Platelocside",
             "TaggedHitType",
             "Pitchcall",
             "Playresult"
