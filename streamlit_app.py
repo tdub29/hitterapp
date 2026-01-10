@@ -1217,6 +1217,7 @@ elif page == "Rolling Trends":
         st.write("### Raw Data (Selected Batter)")
         raw_data_columns = [
             "Date",
+            "Pitcher",
             "Swing",
             "Zone",
             "Contact",
