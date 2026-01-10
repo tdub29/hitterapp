@@ -261,7 +261,10 @@ batters.sort()
 batters = ["All Hitters"] + batters
 selected_batters = st.sidebar.multiselect("Select Batter(s)", batters, default=["All Hitters"])
 
-df["Machine"] = np.where(df["Pitcher"].astype(str).str.strip() == "Bunnell, Jack", "Machine", "Pitching")
+pitcher_series = df["Pitcher"]
+pitcher_str = pitcher_series.fillna("").astype(str).str.strip()
+machine_mask = pitcher_series.isna() | pitcher_str.eq("") | pitcher_str.eq("Bunnell, Jack")
+df["Machine"] = np.where(machine_mask, "Machine", "Pitching")
 machine_options = ["All", "Machine", "Pitching"]
 selected_machine = st.sidebar.selectbox("Machine", machine_options, index=0)
 
