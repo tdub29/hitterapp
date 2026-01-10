@@ -1070,7 +1070,7 @@ def plot_rolling_game_metrics(game_metrics):
         'Swinging Strike%': (0, .5),
         'Chase%': (0, .5),
         'Average Exit Velocity': (72, 96),
-        'Hard Hit%': (0, .5),
+        'Hard Hit%': (0, .7),
         'Ground Ball%': (0, .75)
     }
 
