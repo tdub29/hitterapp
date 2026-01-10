@@ -1066,7 +1066,7 @@ def plot_rolling_game_metrics(game_metrics):
     metric_ranges = {
         'Swing%': (0, 1),
         'Zone-swing%': (0, 1),
-        'Zone Contact%': (0, 1),
+        'Zone Contact%': (0, 1.05),
         'Swinging Strike%': (0, 1),
         'Chase%': (0, 1),
         'Average Exit Velocity': (72, 96),
