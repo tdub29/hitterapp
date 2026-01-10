@@ -1191,26 +1191,27 @@ elif page == "Rolling Trends":
     st.title("Rolling Hitter Trends")
 
     if selected_batters == ["All Hitters"] or not selected_batters:
-        st.warning("Select a single batter from the sidebar to view rolling trends.")
+        batter_pitches = all_pitches
     elif len(selected_batters) > 1:
-        st.warning("Select only one batter from the sidebar to view rolling trends.")
+        batter_pitches = all_pitches[all_pitches['Batter'].isin(selected_batters)]
     else:
         chosen_batter = selected_batters[0]
         batter_pitches = all_pitches[all_pitches['Batter'] == chosen_batter]
-        game_metrics = build_game_level_metrics(batter_pitches)
 
-        if game_metrics.empty:
-            st.warning("Not enough data with dates for the selected batter.")
+    game_metrics = build_game_level_metrics(batter_pitches)
+
+    if game_metrics.empty:
+        st.warning("Not enough data with dates for the selected batter(s).")
+    else:
+        rolling_chart = plot_rolling_game_metrics(game_metrics)
+        st.pyplot(rolling_chart)
+
+        rolling_zone_metrics = build_rolling_zone_metrics_table(batter_pitches)
+        if rolling_zone_metrics.empty:
+            st.warning("Not enough zone data available for the 3-game rolling window.")
         else:
-            rolling_chart = plot_rolling_game_metrics(game_metrics)
-            st.pyplot(rolling_chart)
+            st.write("### 6-Game Rolling Zone Metrics (Heart/Shadow/Chase/Waste)")
+            st.dataframe(rolling_zone_metrics)
 
-            rolling_zone_metrics = build_rolling_zone_metrics_table(batter_pitches)
-            if rolling_zone_metrics.empty:
-                st.warning("Not enough zone data available for the 3-game rolling window.")
-            else:
-                st.write("### 6-Game Rolling Zone Metrics (Heart/Shadow/Chase/Waste)")
-                st.dataframe(rolling_zone_metrics)
-
-            st.write("### Raw Data (Selected Batter)")
-            st.dataframe(batter_pitches.head(1000))
+        st.write("### Raw Data (Selected Batter)")
+        st.dataframe(batter_pitches.head(1000))
