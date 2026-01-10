@@ -1063,6 +1063,17 @@ def plot_rolling_game_metrics(game_metrics):
         'Chase%', 'Average Exit Velocity', 'Hard Hit%', 'Ground Ball%'
     ]
 
+    metric_ranges = {
+        'Swing%': (26, 51),
+        'Zone-swing%': (32, 83),
+        'Zone Contact%': (70, 101),
+        'Swinging Strike%': (9, 37),
+        'Chase%': (13, 35),
+        'Average Exit Velocity': (72, 96),
+        'Hard Hit%': (0, 56),
+        'Ground Ball%': (25, 61)
+    }
+
     rolling_metrics = game_metrics.set_index('Date')[metrics].rolling(window=6, min_periods=1).mean().reset_index()
 
     fig, axes = plt.subplots(4, 2, figsize=(16, 18))
@@ -1085,6 +1096,8 @@ def plot_rolling_game_metrics(game_metrics):
         ax.set_ylabel(metric)
         ax.tick_params(axis='x', rotation=45)
         ax.grid(True, linestyle='--', alpha=0.3)
+        if metric in metric_ranges:
+            ax.set_ylim(metric_ranges[metric])
 
     plt.tight_layout()
     return fig
