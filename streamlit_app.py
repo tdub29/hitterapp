@@ -952,6 +952,79 @@ def build_game_level_metrics(batter_pitches):
     return game_metrics
 
 
+def build_rolling_zone_metrics_table(batter_pitches):
+    batter_pitches = batter_pitches.dropna(subset=['Date', 'PlateZone']).copy()
+    if batter_pitches.empty:
+        return pd.DataFrame()
+
+    recent_dates = (
+        batter_pitches['Date']
+        .dropna()
+        .sort_values()
+        .dt.normalize()
+        .unique()
+    )
+    if len(recent_dates) == 0:
+        return pd.DataFrame()
+
+    last_three_dates = set(recent_dates[-3:])
+    rolling_window = batter_pitches[batter_pitches['Date'].dt.normalize().isin(last_three_dates)].copy()
+    if rolling_window.empty:
+        return pd.DataFrame()
+
+    zones = ['Heart', 'Shadow', 'Chase', 'Waste']
+    zone_metrics = []
+
+    mu_overall = -0.0032
+    std_overall = 0.0130
+
+    def apply_20_80_scale(mean_pred, mu, std):
+        if pd.isna(mean_pred):
+            return np.nan
+        if std == 0:
+            return 50
+        z = (mean_pred - mu) / std
+        return np.clip(50 + 10*z, 20, 80)
+
+    for zone in zones:
+        zone_data = rolling_window[rolling_window['PlateZone'] == zone]
+        zone_swings = zone_data[zone_data['Swing'] == 'Swing']
+
+        total_pitches = len(zone_data)
+        swings = len(zone_swings)
+        contacts = (zone_swings['Contact'] == 'Yes').sum()
+
+        hard_hits = (zone_swings['Exitspeed'] > 90).sum() if 'Exitspeed' in zone_swings.columns else 0
+        xslg = (
+            zone_swings['xSLG'].mean()
+            if 'xSLG' in zone_swings.columns and not zone_swings['xSLG'].isnull().all()
+            else float('nan')
+        )
+
+        dec_rv = (
+            zone_data['decision_rv'].mean()
+            if 'decision_rv' in zone_data.columns and not zone_data['decision_rv'].isnull().all()
+            else float('nan')
+        )
+        dec_rv_20_80 = apply_20_80_scale(dec_rv, mu_overall, std_overall) if pd.notna(dec_rv) else np.nan
+
+        swing_pct = swings / total_pitches if total_pitches > 0 else 0
+        contact_pct = contacts / swings if swings > 0 else 0
+        hard_hit_pct = hard_hits / swings if swings > 0 else 0
+
+        zone_metrics.append({
+            'Zone': zone,
+            'Total Pitches': total_pitches,
+            'Swing%': round(swing_pct, 4),
+            'Contact%': round(contact_pct, 4),
+            'xSLG': round(xslg, 4) if pd.notnull(xslg) else 'N/A',
+            'Hard Hit%': round(hard_hit_pct, 4),
+            'Decision RV (20–80)': round(dec_rv_20_80, 1) if pd.notnull(dec_rv_20_80) else 'N/A'
+        })
+
+    return pd.DataFrame(zone_metrics)
+
+
 def plot_rolling_game_metrics(game_metrics):
     metrics = [
         'Swing%', 'Zone-swing%', 'Zone Contact%', 'Swinging Strike%',
@@ -1080,7 +1153,12 @@ elif page == "Rolling Trends":
             rolling_chart = plot_rolling_game_metrics(game_metrics)
             st.pyplot(rolling_chart)
 
-            rolling_table = game_metrics.set_index('Date').rolling(window=3, min_periods=1).mean().reset_index()
-            rolling_table['Date'] = rolling_table['Date'].dt.strftime('%Y-%m-%d')
-            st.write("### 3-Game Rolling Values")
-            st.dataframe(rolling_table)
+            rolling_zone_metrics = build_rolling_zone_metrics_table(batter_pitches)
+            if rolling_zone_metrics.empty:
+                st.warning("Not enough zone data available for the 3-game rolling window.")
+            else:
+                st.write("### 3-Game Rolling Zone Metrics (Heart/Shadow/Chase/Waste)")
+                st.dataframe(rolling_zone_metrics)
+
+            st.write("### Raw Data (Selected Batter)")
+            st.dataframe(batter_pitches.head(1000))
