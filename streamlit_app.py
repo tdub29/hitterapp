@@ -1064,14 +1064,14 @@ def plot_rolling_game_metrics(game_metrics):
     ]
 
     metric_ranges = {
-        'Swing%': (0, 1),
-        'Zone-swing%': (0, 1),
+        'Swing%': (0, .75),
+        'Zone-swing%': (0.2, 1),
         'Zone Contact%': (0, 1.05),
-        'Swinging Strike%': (0, 1),
-        'Chase%': (0, 1),
+        'Swinging Strike%': (0, .5),
+        'Chase%': (0, .5),
         'Average Exit Velocity': (72, 96),
-        'Hard Hit%': (0, 1),
-        'Ground Ball%': (0, 1)
+        'Hard Hit%': (0, .5),
+        'Ground Ball%': (0, .75)
     }
 
     rolling_metrics = game_metrics.set_index('Date')[metrics].rolling(window=6, min_periods=1).mean().reset_index()
