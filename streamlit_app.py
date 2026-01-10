@@ -869,7 +869,11 @@ def calculate_zone_metrics(data):
         swings = len(zone_swings)
         contacts = (zone_swings['Contact'] == 'Yes').sum()
 
-        hard_hits = (zone_swings['Exitspeed'] > 90).sum() if 'Exitspeed' in zone_swings.columns else 0
+        batted_balls = zone_data[zone_data['Exitspeed'] > 0]
+        avg_ev = batted_balls['Exitspeed'].mean()
+        hard_hits = (batted_balls['Exitspeed'] > 90).sum()
+        gb_count = (batted_balls['Angle'] < 0).sum()
+        batted_ball_total = len(batted_balls)
         xslg = (zone_swings['xSLG'].mean() 
                 if 'xSLG' in zone_swings.columns and not zone_swings['xSLG'].isnull().all() 
                 else float('nan'))
@@ -885,14 +889,25 @@ def calculate_zone_metrics(data):
         swing_pct = swings / total_pitches if total_pitches > 0 else 0
         contact_pct = contacts / swings if swings > 0 else 0
         hard_hit_pct = hard_hits / swings if swings > 0 else 0
+        zone_swing_pct = swings / total_pitches if total_pitches > 0 else 0
+        zone_contact_pct = contacts / swings if swings > 0 else 0
+        swinging_strike_pct = (swings - contacts) / total_pitches if total_pitches > 0 else 0
+        chase_pct = swings / total_pitches if zone in ['Chase', 'Waste'] and total_pitches > 0 else np.nan
+        ground_ball_pct = gb_count / np.maximum(batted_ball_total, 1)
 
         zone_metrics.append({
             'Zone': zone,
             'Total Pitches': total_pitches,
             'Swing%': round(swing_pct, 4),
+            'Zone-swing%': round(zone_swing_pct, 4),
             'Contact%': round(contact_pct, 4),
+            'Zone Contact%': round(zone_contact_pct, 4),
+            'Swinging Strike%': round(swinging_strike_pct, 4),
+            'Chase%': round(chase_pct, 4) if pd.notnull(chase_pct) else 'N/A',
+            'Average Exit Velocity': round(avg_ev, 2) if pd.notnull(avg_ev) else 'N/A',
             'xSLG': round(xslg, 4) if pd.notnull(xslg) else 'N/A',
             'Hard Hit%': round(hard_hit_pct, 4),
+            'Ground Ball%': round(ground_ball_pct, 4),
             'Decision RV (20–80)': round(dec_rv_20_80, 1) if pd.notnull(dec_rv_20_80) else 'N/A'
         })
 
@@ -994,7 +1009,11 @@ def build_rolling_zone_metrics_table(batter_pitches):
         swings = len(zone_swings)
         contacts = (zone_swings['Contact'] == 'Yes').sum()
 
-        hard_hits = (zone_swings['Exitspeed'] > 90).sum() if 'Exitspeed' in zone_swings.columns else 0
+        batted_balls = zone_data[zone_data['Exitspeed'] > 0]
+        avg_ev = batted_balls['Exitspeed'].mean()
+        hard_hits = (batted_balls['Exitspeed'] > 90).sum()
+        gb_count = (batted_balls['Angle'] < 0).sum()
+        batted_ball_total = len(batted_balls)
         xslg = (
             zone_swings['xSLG'].mean()
             if 'xSLG' in zone_swings.columns and not zone_swings['xSLG'].isnull().all()
@@ -1011,14 +1030,25 @@ def build_rolling_zone_metrics_table(batter_pitches):
         swing_pct = swings / total_pitches if total_pitches > 0 else 0
         contact_pct = contacts / swings if swings > 0 else 0
         hard_hit_pct = hard_hits / swings if swings > 0 else 0
+        zone_swing_pct = swings / total_pitches if total_pitches > 0 else 0
+        zone_contact_pct = contacts / swings if swings > 0 else 0
+        swinging_strike_pct = (swings - contacts) / total_pitches if total_pitches > 0 else 0
+        chase_pct = swings / total_pitches if zone in ['Chase', 'Waste'] and total_pitches > 0 else np.nan
+        ground_ball_pct = gb_count / np.maximum(batted_ball_total, 1)
 
         zone_metrics.append({
             'Zone': zone,
             'Total Pitches': total_pitches,
             'Swing%': round(swing_pct, 4),
+            'Zone-swing%': round(zone_swing_pct, 4),
             'Contact%': round(contact_pct, 4),
+            'Zone Contact%': round(zone_contact_pct, 4),
+            'Swinging Strike%': round(swinging_strike_pct, 4),
+            'Chase%': round(chase_pct, 4) if pd.notnull(chase_pct) else 'N/A',
+            'Average Exit Velocity': round(avg_ev, 2) if pd.notnull(avg_ev) else 'N/A',
             'xSLG': round(xslg, 4) if pd.notnull(xslg) else 'N/A',
             'Hard Hit%': round(hard_hit_pct, 4),
+            'Ground Ball%': round(ground_ball_pct, 4),
             'Decision RV (20–80)': round(dec_rv_20_80, 1) if pd.notnull(dec_rv_20_80) else 'N/A'
         })
 
