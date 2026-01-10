@@ -119,7 +119,8 @@ rename_mapping = {
     "exitdir": "Direction",
     "dist": "Distance",
     # Some CSVs already provide an AutoPitchType column; normalize its casing.
-    "autopitchtype": "Autopitchtype"
+    "autopitchtype": "Autopitchtype",
+    "taggedhittype": "TaggedHitType"
 }
 
 # Convert column names to lower-case (strip spaces) for matching keys
@@ -1214,4 +1215,17 @@ elif page == "Rolling Trends":
             st.dataframe(rolling_zone_metrics)
 
         st.write("### Raw Data (Selected Batter)")
-        st.dataframe(batter_pitches.head(1000))
+        raw_data_columns = [
+            "Platelocheight",
+            "Platelocside",
+            "Exitspeed",
+            "Angle",
+            "TaggedHitType",
+            "Pitchcall",
+            "Playresult"
+        ]
+        raw_data_view = batter_pitches[[col for col in raw_data_columns if col in batter_pitches.columns]]
+        if raw_data_view.empty:
+            st.warning("No raw data columns available for display.")
+        else:
+            st.dataframe(raw_data_view.head(1000))
