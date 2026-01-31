@@ -32,20 +32,20 @@ import matplotlib.dates as mdates
 # Load Machine Learning Models
 ############################################
 booster = xgb.Booster()
-booster.load_model('xSLG_model.json')
+booster.load_model('models/xSLG_model.json')
 
 best_model = xgb.XGBRegressor()
 best_model._Booster = booster  # Assign the booster to the regressor
 
 # Load the No-Swing model (JSON)
 no_swing_booster = xgb.Booster()
-no_swing_booster.load_model('model_no_swing.json')
+no_swing_booster.load_model('models/model_no_swing.json')
 model_no_swing = xgb.XGBRegressor()
 model_no_swing._Booster = no_swing_booster
 
 # Load the Swing model (JSON)
 swing_booster = xgb.Booster()
-swing_booster.load_model('model_swing.json')
+swing_booster.load_model('models/model_swing.json')
 model_swing = xgb.XGBRegressor()
 model_swing._Booster = swing_booster
 
@@ -638,9 +638,9 @@ def plot_pitch_locations_by_hand_and_ypred(data):
     st.pyplot(fig)
 
 def plot_kde_comparison(data):
-    f_league_path = "league_kde_earliest.npy"
-    x_grid_path = "grid_x.npy"
-    y_grid_path = "grid_y.npy"
+    f_league_path = "artifacts/league_kde_earliest.npy"
+    x_grid_path = "artifacts/grid_x.npy"
+    y_grid_path = "artifacts/grid_y.npy"
     try:
         f_league = np.load(f_league_path, allow_pickle=True)
         X = np.load(x_grid_path, allow_pickle=True)
