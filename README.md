@@ -1,73 +1,70 @@
 # TORERO BASEBALL HITTER APP
 
-So much of this repo is thanks to the great work of Thomas Nestico, Kyle Bland, Max Bay, for providing examples of models or other essential code in their githubs
+So much of this repo is thanks to the great work of Thomas Nestico, Kyle Bland, Max Bay, for providing examples of models or other essential code in their githubs.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+## Project overview
 
-## Repository structure
+This repo contains a Streamlit dashboard for USD baseball hitter analysis. The app loads pitch-by-pitch data, enriches it with derived metrics (count state, swing/contact flags, zone mapping, pitch categories), and uses pre-trained XGBoost models to estimate expected slugging (xSLG) and decision value for takes/swings. The UI is organized into multiple pages (heatmaps, spray chart, pitch locations, metrics tables, rolling trends) for day-to-day player evaluation and scouting.
+
+Data is pulled from a CSV hosted in GitHub by default (`usd_baseball_TM_master_file.csv`), and the app expects TrackMan-style columns such as batter/pitcher identifiers, pitch location, exit velocity, launch angle, pitch type, and pitch outcomes. You can point the app to a different CSV by updating `file_path` in `streamlit_app.py`.
+
+## What the Streamlit app shows
+
+- **Hitter heatmaps**: Strike-zone grids that visualize xSLG, exit velocity, launch angle, swing rate, and other per-cell metrics.
+- **Spray chart**: Batted-ball direction/ distance chart with exit velocity coloring.
+- **Pitch locations**: Plots split by play result and by decision value model scores.
+- **Hitter metrics table**: Per-batter rolling stats (EV, barrel%, swing/contact rates, zone%, etc.) plus decision values on the 20–80 scale.
+- **Zone metrics (Heart/Shadow/Chase/Waste)**: Swing/contact/EV/xSLG and decision value summaries per zone.
+- **Rolling trends**: 6-game rolling plots for swing%, chase%, contact%, EV, and other indicators.
+
+## Models and artifacts
+
+- **xSLG model**: `models/xSLG_model.json` uses exit velocity, launch angle, and their interaction to predict xSLG.
+- **Decision value models**: `models/model_no_swing.json` and `models/model_swing.json` score takes/swings using plate location and count.
+- **League KDE artifacts**: `artifacts/league_kde_earliest.npy`, `artifacts/grid_x.npy`, `artifacts/grid_y.npy` are used for league reference density plots.
+
+## Repository layout
 
 ```
 .
-├── artifacts/          # Precomputed numpy arrays or other derived artifacts used at runtime.
-├── configs/            # Configuration files (YAML/TOML/JSON) and environment templates.
-├── data/
-│   ├── external/       # Third-party or vendor data sources (read-only).
-│   ├── processed/      # Cleaned/feature-ready data derived from raw inputs.
-│   └── raw/            # Immutable raw data pulls/snapshots (never edit in place).
-├── docs/               # Project documentation and reference materials.
-├── models/             # Serialized model artifacts (JSON, pickle, ONNX).
-├── notebooks/          # Exploratory analyses and experiments (kept out of src).
-├── scripts/            # One-off or batch scripts for ingestion/ETL/automation.
-├── src/                # Reusable library code (ingestion, features, modeling).
-├── tests/              # Unit/integration tests for reproducibility and CI.
+├── artifacts/          # Precomputed numpy arrays used by the app (KDE grids).
+├── configs/            # Configuration placeholders (currently empty).
+├── data/               # Data storage (not checked in).
+├── docs/               # Reference docs (e.g., D1 baseball reference PDF).
+├── models/             # XGBoost model JSON files used by the app.
+├── notebooks/          # Reserved for experiments (currently empty).
+├── scripts/            # Reserved for batch scripts (currently empty).
+├── src/                # Reserved for reusable modules (currently empty).
+├── tests/              # Reserved for tests (currently empty).
 ├── requirements.txt    # Python dependencies.
-└── streamlit_app.py     # App entry point (kept at repo root for Streamlit).
+└── streamlit_app.py    # Streamlit entry point.
 ```
 
-### Top-level directory contents
+## Data requirements (expected columns)
 
-- **artifacts/**: Runtime assets (e.g., grids, KDEs) generated from data/modeling steps so the app can load them quickly.
-- **configs/**: Centralized configuration for environments (local, staging, prod) without hard-coding in code.
-- **data/**: Clear separation of raw, processed, and external data to enforce reproducibility and auditability.
-- **docs/**: Design notes, data dictionaries, or references to help onboarding and collaboration.
-- **models/**: Versioned model artifacts tied to training runs and evaluation results.
-- **notebooks/**: Exploratory work stays isolated from production code but is still tracked.
-- **scripts/**: CLI or batch utilities for ingestion, feature building, training, evaluation, deployment tasks.
-- **src/**: Reusable modules so pipelines can be tested and imported (e.g., `src/ingestion`, `src/features`).
-- **tests/**: Ensures model/data pipelines and app utilities remain stable.
+The app renames columns into a standard schema. A typical input file should include the following fields (case-insensitive, with spaces stripped):
 
-### Naming conventions
+- **Game metadata**: `GameDate`, `Inning`, `PaOfInning`, `Count` (or `Balls` and `Strikes`)
+- **Participants**: `Batter`, `Pitcher`, `BatterSide`, `PitcherThrows`
+- **Pitch details**: `PitchTypeFull` (or `AutoPitchType`), `TaggedPitchType`
+- **Plate location**: `Px`, `Pz`
+- **Outcomes**: `PitchOutcome` (pitch call), `PitchResult` (play result), `PitchUID`
+- **Batted-ball data**: `ExitVelocity`, `LaunchAng`, `ExitDir`, `Dist`
 
-- **Files**: `snake_case` for data/artifact filenames; `PascalCase` only for class names.
-- **Data snapshots**: `source_YYYYMMDD.csv` or `source_vN.csv` for deterministic lineage.
-- **Models**: `model_name__metric__date.json` (e.g., `xslg__rmse_0.12__20240201.json`).
-- **Notebooks**: `NN__short_topic__author.ipynb` to keep ordering and attribution.
+If your CSV uses different column names, update the `rename_mapping` dictionary in `streamlit_app.py`.
 
-### README content
+## Running the app locally
 
-- **Project overview** (goal, data sources, expected outputs).
-- **Quickstart** (env setup, data requirements, run commands).
-- **Data lineage** (raw → processed → features → model artifacts).
-- **Modeling approach** (features, algorithms, evaluation metrics).
-- **Deployment** (how to run Streamlit, environment variables).
-- **Contributing** (tests, style, review process).
+1. Install dependencies:
 
-### Configuration
-
-- Use a single config file per environment in `configs/` (e.g., `configs/local.yaml`).
-- Keep secrets out of git; rely on environment variables or a secrets manager.
-- Prefer reading configs in code to make paths and thresholds consistent across notebooks, scripts, and the app.
-
-### How to run it on your own machine
-
-1. Install the requirements
-
-   ```
-   $ pip install -r requirements.txt
+   ```bash
+   pip install -r requirements.txt
    ```
 
-2. Run the app
+2. Start Streamlit:
 
+   ```bash
+   streamlit run streamlit_app.py
    ```
-   $ streamlit run streamlit_app.py
-   ```
+
+The app will download the default CSV from GitHub at runtime. To use a local file, replace `file_path` in `streamlit_app.py` with a local path.
