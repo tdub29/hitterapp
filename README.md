@@ -4,7 +4,7 @@ So much of this repo is thanks to the great work of Thomas Nestico, Kyle Bland, 
 
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
 
-## Repository structure (production-ready layout)
+## Repository structure
 
 ```
 .
@@ -24,7 +24,7 @@ So much of this repo is thanks to the great work of Thomas Nestico, Kyle Bland, 
 └── streamlit_app.py     # App entry point (kept at repo root for Streamlit).
 ```
 
-### Top-level directory rationale
+### Top-level directory contents
 
 - **artifacts/**: Runtime assets (e.g., grids, KDEs) generated from data/modeling steps so the app can load them quickly.
 - **configs/**: Centralized configuration for environments (local, staging, prod) without hard-coding in code.
@@ -43,7 +43,7 @@ So much of this repo is thanks to the great work of Thomas Nestico, Kyle Bland, 
 - **Models**: `model_name__metric__date.json` (e.g., `xslg__rmse_0.12__20240201.json`).
 - **Notebooks**: `NN__short_topic__author.ipynb` to keep ordering and attribution.
 
-### README content recommendations
+### README content
 
 - **Project overview** (goal, data sources, expected outputs).
 - **Quickstart** (env setup, data requirements, run commands).
@@ -52,7 +52,7 @@ So much of this repo is thanks to the great work of Thomas Nestico, Kyle Bland, 
 - **Deployment** (how to run Streamlit, environment variables).
 - **Contributing** (tests, style, review process).
 
-### Configuration management
+### Configuration
 
 - Use a single config file per environment in `configs/` (e.g., `configs/local.yaml`).
 - Keep secrets out of git; rely on environment variables or a secrets manager.
